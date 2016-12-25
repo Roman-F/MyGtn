@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head lang="ru">
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+    <table>
+        <tr>
+            <form action="/register/formfl/" method="post">{% csrf_token %}
+                <input type="hidden" name="NameRegisterModel" value='{{model}}'>
+                <input type="submit" value="Добавить">
+            </form>
+        </tr>
+        <tr>
+            <form action="/register/formfl/" method="post">{% csrf_token %}
+                <input type="hidden" name="NameRegisterModel" value='{{model}}'>
+                <input type="hidden" name="id_record" value="1">
+                <button type="submit">Изменить</button>
+            </form>
+        </tr>
+        <!--<tr>-->
+            <!--&lt;!&ndash;<form action="/in_file/" method="post">{% csrf_token %}&ndash;&gt;-->
+                <!--&lt;!&ndash;<input type="hidden" name="NameRegisterModel" value='{{model}}'>&ndash;&gt;-->
+                <!--&lt;!&ndash;<button type="submit">Выгрузить</button>&ndash;&gt;-->
+            <!--&lt;!&ndash;</form>&ndash;&gt;-->
+        <!--</tr>-->
+        <tr>
+            <form action="/register/template_import/" method="post">{% csrf_token %}
+                <input type="hidden" name="NameRegisterModel" value='{{model}}'>
+                <button type="submit">Выгрузить шаблон импорта</button>
+            </form>
+        </tr>
+        <tr>
+            <form action="/register/import_in_system/" method="post" enctype="multipart/form-data">{% csrf_token %}
+                <input type="hidden" name="NameRegisterModel" value='{{model}}'>
+                <input type="file" name="file_to_import">
+                <button type="submit">Загрузить файл импорта</button>
+            </form>
+        </tr>
+    </table>
+
+    <table>
+        <tr>
+            <th>Фамилия</th>
+            <th>Имя</th>
+            <th>Отчество</th>
+            <th>Дата рождения</th>
+            <th>Паспорт</th>
+            <th>ИНН</th>
+            <th>Место рождения</th>
+            <th>Группа</th>
+        </tr>
+    </table>
+    {% for exemplar in list %}
+        <p>
+        <tr>
+            <td>{{exemplar.surname}}</td>
+            <td>{{exemplar.name}}</td>
+            <td>{{exemplar.middlename}}</td>
+            <td>{{exemplar.date_of_birth}}</td>
+            <td>{{exemplar.serial_dul}} {{exemplar.number_dul}}</td>
+            <td>{{exemplar.inn}}</td>
+            <td>{{exemplar.place_of_birth}}</td>
+            <td>{{exemplar.groupfl}}</td>
+        </tr>
+            </p>
+    {%endfor%}
+</body>
+</html>

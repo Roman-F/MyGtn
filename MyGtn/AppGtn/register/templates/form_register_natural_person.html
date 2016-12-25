@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head lang="ru">
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+    <form action="/register/formfl/" method="post">{% csrf_token %}
+        {{formfl.as_p}}
+        <input type="hidden" name="NameRegisterModel" value='{{model}}'>
+        <input type="hidden" name="id_record" value='{{id_record}}'>
+        <input type="submit" name="save" value="Сохранить"/>
+
+    </form>
+    <form action="/register/fl/">
+        <button type="submit">Отмена</button>
+    </form>
+</body>
+</html>

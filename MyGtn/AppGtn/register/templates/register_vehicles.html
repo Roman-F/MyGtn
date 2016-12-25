@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head lang="ru">
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+    <table>
+        <tr>
+            <form action="/register/formfl/" method="post">{% csrf_token %}
+                <input type="hidden" name="NameRegisterModel" value='{{model}}'>
+                <input type="submit" value="Добавить">
+            </form>
+        </tr>
+        <tr>
+            <form action="/register/formfl/" method="post">{% csrf_token %}
+                <input type="hidden" name="NameRegisterModel" value='{{model}}'>
+                <input type="hidden" name="id_record" value="1">
+                <button type="submit">Изменить</button>
+            </form>
+        </tr>
+        <tr>
+            <form action="/in_file/" method="post">{% csrf_token %}
+                <input type="hidden" name="NameRegisterModel" value='{{model}}'>
+                <button type="submit">Выгрузить</button>
+            </form>
+        </tr>
+    </table>
+
+    <table>
+        <tr>
+            <th>Цвет</th>
+            <th>Год выдачи</th>
+            <th>Серия ПСМ</th>
+            <th>Номер ПСМ</th>
+            <th>Дата выдачи ПСМ</th>
+            <th>Заводской номер</th>
+            <th>Номер двигателя</th>
+            <th>Номер КПП</th>
+            <th>Номер моста</th>
+        </tr>
+    </table>
+    {% for exemplar in list %}
+        <p>
+        <tr>
+            <td>{{exemplar.color}}</td>
+            <td>{{exemplar.year_of_issue}}</td>
+            <td>{{exemplar.serial_psm}}</td>
+            <td>{{exemplar.number_psm}}</td>
+            <td>{{exemplar.date_of_issue_psm}}</td>
+            <td>{{exemplar.serial_number}}</td>
+            <td>{{exemplar.engine_number}}</td>
+            <td>{{exemplar.transmission_number}}</td>
+            <td>{{exemplar.bridge_number}}</td>
+        </tr>
+            </p>
+    {%endfor%}
+</body>
+</html>
