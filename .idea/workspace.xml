@@ -53,12 +53,12 @@
       <file leaf-file-name="workspace.xml" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/.idea/workspace.xml">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="17000">
+            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="17289">
               <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
               <folding>
-                <marker date="1482825239649" expanded="true" signature="59:55897" placeholder="..." />
-                <marker date="1482825239649" expanded="true" signature="98:214" placeholder="..." />
-                <marker date="1482825239649" expanded="true" signature="192:214" placeholder="..." />
+                <marker date="1482825722979" expanded="true" signature="59:56652" placeholder="..." />
+                <marker date="1482825722979" expanded="true" signature="98:214" placeholder="..." />
+                <marker date="1482825722979" expanded="true" signature="192:214" placeholder="..." />
               </folding>
             </state>
           </provider>
@@ -531,7 +531,13 @@
       <option name="project" value="LOCAL" />
       <updated>1482822824984</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Тестовый коммит2">
+      <created>1482825711240</created>
+      <option name="number" value="00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1482825711240</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TodoView" selected-index="0">
@@ -596,7 +602,8 @@
       <TodoPanelSettings />
     </option>
     <MESSAGE value="Тестовый коммит" />
-    <option name="LAST_COMMIT_MESSAGE" value="Тестовый коммит" />
+    <MESSAGE value="Тестовый коммит2" />
+    <option name="LAST_COMMIT_MESSAGE" value="Тестовый коммит2" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -968,9 +975,9 @@
         <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="16796">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <marker date="1482825239649" expanded="true" signature="59:55897" placeholder="..." />
-            <marker date="1482825239649" expanded="true" signature="98:214" placeholder="..." />
-            <marker date="1482825239649" expanded="true" signature="192:214" placeholder="..." />
+            <marker date="1482825722979" expanded="true" signature="59:56652" placeholder="..." />
+            <marker date="1482825722979" expanded="true" signature="98:214" placeholder="..." />
+            <marker date="1482825722979" expanded="true" signature="192:214" placeholder="..." />
           </folding>
         </state>
       </provider>
