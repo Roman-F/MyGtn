@@ -39,6 +39,7 @@ INSTALLED_APPS = (
     'AppGtn',
     'AppGtn.register',
     'south',
+    'devserver',
 )
 
 MIDDLEWARE_CLASSES = (

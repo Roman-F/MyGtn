@@ -213,7 +213,69 @@ class ImportDataInSystem ():
 
 
     @staticmethod
-    def check_row_data (class_check, methods_and_check_values):
+    def get_true_vlues (cls_for_import, names_check_fields, check_values):
+        """
+        Метод находит связанные поля в модели, для которой осуществляется импорт.
+        Далее метод определяет для найденных связанных полей, по импортируемым данным,
+            действительные ("Истинные") значения (т.е. значения внешних ключей)
+
+        Решаемая задача (на примере технического средства (далее - ТС)):
+            Импортируется запись о ТС.
+            Модель ТС содержит связанное поле "Цвет", которое ссылается на справочник "Цвет ТС".
+            В БД, в таблице ТС в колонке "Цвет" хранится ID цвета из справочника "Цвет ТС".
+            В тоже время, в импортируемом файле указывается значение цвета, а не его ID (что естетственно, т.к.
+                пользователь не знает ID цветов)
+            Т.к. типы имортируемых значений для связанных полей и типы связанных полей в БД не совпадают,
+                то действовать "в лоб" нельзя.
+            Т.о. предварительно необходимо найти по импортируемым значениям соответствующие им ID в связанных моделях
+                и уже после этого проводить дальнейшую обработку (искать дубли, сохранять данные в БД)
+
+        Нюансы реализации:
+            1) т.к. заренее не известно по какой модели будет проводится импорт, то необходимо проверять все поля модели
+               на "связанность"
+            2) аналогично и для связанных моделей:
+                т.к. заранее не известна связанная модель, то нельзя определить по какому полю нужно искать
+                    импортируемое значение.
+                соответственно, необходимо искать импортируемое значение по всем полям модели.
+            3) Для пустых импортируемых значений (None) поиск не проводится
+
+            Примечаниие: хардкод как решение задачи не приемлем :)
+
+
+        :param cls_for_import: класс модели для которйо осуществляется импорт
+        :param names_check_fields: наименование полей модели по которым проводится импорт
+        :param check_values: импортируемые значения
+        :return: список импортируемых значений, в котором значения для связанных полей заменены соответствующими им
+            ID (внещними ключами)
+        """
+
+        check_related_generator = (cls_for_import._meta.get_field_by_name(name)[0].rel.to
+                                   if cls_for_import._meta.get_field_by_name(name)[0].rel else False
+                                   for name in names_check_fields)
+
+        agregated_Q = []
+        true_check_values=[]
+
+        for related_class, value in zip(check_related_generator,check_values):
+
+            true_value = False
+
+            if (related_class) and (value != None):
+                rel_cls_fields = related_class._meta.get_all_field_names()
+                for rel_cls_field in rel_cls_fields:
+                    agregated_Q.append(Q(**{rel_cls_field:value}))
+
+                true_value = related_class.objects.filter(OR(*agregated_Q))[:1]
+
+            if true_value:
+                true_check_values.append(true_value.pk)
+            else:
+                true_check_values.append(value)
+
+        return true_check_values
+
+    @staticmethod
+    def check_row_data (class_check, fields_name, check_values):
         """
         :param check_row: проверяемая строка с данными
         :return: возвращает False если ошибок не найденно, иначе кортеж результатов проверки полей:
@@ -221,13 +283,13 @@ class ImportDataInSystem ():
         * текст - поле ошибочно, а полученный текст описывает ошибку
         """
 
-        result = tuple(getattr(class_check,'do_check_' + name_method,lambda x:'')(str(check_value))
-                                            for name_method, check_value in methods_and_check_values)
+        result = tuple(getattr(class_check,'do_check_' + field_name,lambda x:'')(str(check_value))
+                                            for field_name, check_value in zip (fields_name, check_values))
 
         return result if any(result) else False
 
     @staticmethod
-    def check_duplicate (cls_for_import, methods_and_check_values):
+    def check_duplicate (cls_for_import, fields_name, check_values):
         """
         :param cls_for_import: класс модели, в которую осуществляется импорт
         :param methods_and_check_values: наименования полей и значения, которые импортируются в поля
@@ -235,9 +297,10 @@ class ImportDataInSystem ():
         """
 
         param_for_filter = {key:datetime.date(value) if isinstance(value,datetime) else value
-                                        for key,value in methods_and_check_values if value}
+                                        for key,value in zip (fields_name, check_values) if value}
 
-        return True if cls_for_import.objects.filter(**param_for_filter) else False
+        return True if cls_for_import.objects.filter(**param_for_filter)[:1] else False
+
 
 
     @classmethod
@@ -258,8 +321,8 @@ class ImportDataInSystem ():
                         cell_error = ws_error.cell(row= idx_file_errors, column= idx_column+1, value= check_cell.value)
                         cell_error.font = check_cell.font
 
-                        if result:
-                            if result[idx_column]:
+                        if result_check:
+                            if result_check[idx_column]:
                                 cell_error.fill = redFill
 
         dict_result = {
@@ -349,59 +412,39 @@ class ImportDataInSystem ():
 
             # Проверям строку на ошибки в данных
             check_values = [x.value for x in check_row]
-            methods_and_check_values = zip (names_check_methods, check_values)
-            result = cls.check_row_data(class_check, methods_and_check_values)
+            result_check = cls.check_row_data(class_check, names_check_methods, check_values)
 
-            if result:
+            if result_check:
                 #пишем строку с ошибками в файл для ошибок
                 write_to_file_errors()
 
-                text_error = ' '.join(result)
+                text_error = ''.join(result_check)
                 ws_error.cell(row= idx_file_errors, column= len(check_row)+1,value= text_error)
                 idx_file_errors += 1
                 count_error += 1
 
-
-            #Иначе проводим проверку на дублирование
-            elif cls.check_duplicate(cls_for_import,methods_and_check_values):
-
-#########################проект кода по поиску значений в связанных объектах##############################3
-
-                check_related_generator = (cls_for_import._meta.get_field_by_name(name).rel.to
-                                           if cls_for_import._meta.get_field_by_name(name).rel else False
-                                        for name in names_check_methods)
-
-                agregated_Q = []
-                true_check_values=[]
-
-                for related_class, value in zip(check_related_generator,check_values):
-
-                    true_value = False
-
-                    if related_class:
-                        rel_cls_fields = related_class._meta.get_all_field_names()
-                        for rel_cls_field in rel_cls_fields:
-                            agregated_Q.append(Q(**{rel_cls_field:value}))
-
-                        true_value = related_class.objects.filter(OR(*agregated_Q))
-
-                    if true_value:
-                        true_check_values.append(true_value[0].pk)
-                    else:
-                        true_check_values = value
-###################################################################
-
-
-
-
-                write_to_file_errors()
-
-                ws_error.cell(row= idx_file_errors, column= len(check_row)+1,value= 'Дубль записи в Системе')
-                count_duplicates += 1
-                idx_file_errors += 1
-
             else:
-                count_correct_records += 1
+                #Иначе проводим проверку на дублирование
+                true_check_values = cls.get_true_vlues(cls_for_import, names_check_methods, check_values)
+                if cls.check_duplicate(cls_for_import, names_check_methods, true_check_values):
+
+                    write_to_file_errors()
+
+                    ws_error.cell(row= idx_file_errors, column= len(check_row)+1,value= 'Дубль записи в Системе')
+                    count_duplicates += 1
+                    idx_file_errors += 1
+
+                else:
+                    #Иначе считаем запись корректной и сохраняем ее в БД
+                    count_correct_records += 1
+
+                    instance_for_save = cls_for_import()
+                    for name_field, t_value in zip(names_check_methods, true_check_values):
+                        if t_value:
+                            setattr(instance_for_save,name_field,t_value)
+
+                    instance_for_save.save()
+
 
         wb_error.save(path_file_error)
 
@@ -412,21 +455,6 @@ class ImportDataInSystem ():
             'count_duplicates' : count_duplicates,
             'count_correct_records' : count_correct_records
             }
-
-
-        #читаем файл и сохраняем данные в БД
-
-        dict_data = []
-        for row in ws.rows:
-            model_for_save = cls_for_import()
-            if row[0].coordinate == 'A1':
-                continue
-            i = 0
-            for cell in row:
-                setattr(model_for_save,cls_for_import.FIELD_FOR_IMPORT[i],cell.value)
-                i = i +1
-            model_for_save.save()
-        #--------------------------------------------
 
         return str(ws.columns[1][1:])
 
