@@ -214,6 +214,7 @@ class ImportDataInSystem ():
 
     @staticmethod
     def get_true_vlues (cls_for_import, names_check_fields, check_values):
+
         """
         Метод находит связанные поля в модели, для которой осуществляется импорт.
         Далее метод определяет для найденных связанных полей, по импортируемым данным,
@@ -377,21 +378,21 @@ class ImportDataInSystem ():
                 error_column.append(i.value)
 
         if error_column:
-            error_message = u'Не удалось идентифициоровать все колонки в импортируемом файле./n' \
-                            'Перечень не идентифицирвоанных колонок:/n'
+
+            import_status = 'Fatal error'
+
+            error_message = (u'Импорт невозможен. Не удалось идентифициоровать все колонки в импортируемом файле./n'
+                             u' Перечень не идентифицирвоанных колонок:/n')
 
             for i in error_column:
                 error_message += '- ' + i + '/n'
 
             dict_result.update({
-                'status': 'error',
+                'status': import_status,
                 'message': error_message
             })
 
             return dict_result
-
-        # import_data['dict_matching'] = matching_column_import_with_field_model
-
 
         #Создаем файл для хранения ошибочных записей + добавляем в него колонку "Описание ошибок"
         path_file_error = cls.get_file_template_for_import(cls_for_import)
@@ -449,14 +450,30 @@ class ImportDataInSystem ():
         wb_error.save(path_file_error)
 
 
-        # Проверяем данные файла на корректность
-        return {
-            'count_error' : count_error,
-            'count_duplicates' : count_duplicates,
-            'count_correct_records' : count_correct_records
-            }
+        if (count_error or count_duplicates) and count_correct_records:
+            import_status = 'Error'
+            error_message = (u'Данные загружены частично.'
+                             u' В импортируемых данных обнаружены записи с ошибками или дубликаты.')
 
-        return str(ws.columns[1][1:])
+        elif (count_error or count_duplicates) and not count_correct_records:
+            import_status = 'Error'
+            error_message = (u'Нет данных для загрузки.'
+                             u' В импортируемых данных обнаружены записи с ошибками или дубликаты.')
+        else:
+            import_status = u'Успех.'
+            error_message = u'Загружены все записи.'
+
+        dict_result.update({
+            'status': import_status,
+            'message': error_message,
+            'number_of_records': len(ws.rows) - 1,
+            'number_of_imported': count_correct_records,
+            'number_of_errors': count_error,
+            'number_of_duplicates': count_duplicates,
+            'link_to_file_errors': path_file_error
+        })
+
+        return dict_result
 
 
 class CheckImportEntityNaturalPerson ():

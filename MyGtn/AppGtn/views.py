@@ -37,6 +37,33 @@ DICT_URL_PATH_TO_REGISTER = {'EntityNaturalPerson': '/register/fl/',
 # DICT_MODELFORM = {'EntityNaturalPerson': models.FormEntityAppGtn}
 
 
+def get_response_to_unload_file (path_to_file, name_file_for_user = '', remove_file = False):
+
+    '''
+        Функция читает полученный файл в двоичном режиме.
+        По прочитанным данным формирует и возвращает объект HttpResponse.
+        Удаляет прочитанный файл, если remove_file = True
+
+        :param path_to_file: Путь к файлу, по которому нужно сформровать HttpResponse.
+        :param name_file_for_user: Имя файла, которое будет отображаться пользователю при скачивании
+        :param remove_file: если True - то прочитаный файл будет удален
+        :return: объект HttpResponse
+    '''
+
+    if name_file_for_user == '':
+        name_file_for_user = os.path.basename(path_to_file)
+
+    # формируем response с файлом для отдачи пользователю
+    with open(path_to_file, 'rb') as myfile:
+        response = HttpResponse(myfile.read(), content_type='application')
+        response['Content-Disposition'] = 'attachment; filename= ' + name_file_for_user
+
+    if remove_file:
+        os.remove(myfile.name)
+
+    return response
+
+
 def appgtn_register(request,model):
     """
     формироание реестра "Физические лица"
@@ -222,8 +249,9 @@ def appgtn_in_file_register_natural_person(request):
 def appgtn_upload_file_import (request):
 
     '''
-    Вьюха выгружает пользователю файл шаблона импорта
-     шаблон формируется по модели полученной из запроса
+        Вьюха выгружает пользователю файл шаблона импорта шаблон формируется по модели полученной из запроса.
+        Т.к. вьюха общая для всех моделей, то файлы генерируются каждый раз при запросе, а не берутся готовые шаблоны.
+        Соответственно, файл шаблона, после выгрузки удаляется
     '''
 
     name_model = request.POST.get('NameRegisterModel', 'Модель не найдена')
@@ -231,14 +259,9 @@ def appgtn_upload_file_import (request):
 
     path_to_template_import = model_for_file.get_file_template_for_import()
 
-    # формируем respnse с файлом для отдачи пользователю
-    with open(path_to_template_import, 'rb') as myfile:
-        response = HttpResponse(myfile.read(), content_type='application')
-        response['Content-Disposition'] = 'attachment; filename=' + name_model + str(random.randint(1000, 9999)) \
-                                          + '.xlsx'
-    myfile.close()
+    filename = name_model + str(random.randint(1000, 9999)) + '.xlsx'
 
-    return response
+    return get_response_to_unload_file(path_to_template_import, name_file_for_user=filename, remove_file=True)
 
 def appgtn_import_in_system (request):
 
@@ -256,8 +279,6 @@ def appgtn_import_in_system (request):
         for chunk in file_data.chunks():
             work_file.write(chunk)
 
-    file_data.close()
-
     try:
         result_import = model_for_file.import_in_system(path_work_file)
     except RuntimeError as result_import:
@@ -265,7 +286,51 @@ def appgtn_import_in_system (request):
     finally:
         os.remove(path_work_file)
 
-    return  render(request,'template_test.html',{'parametr':result_import})
+    # return get_response_to_unload_file(result_import['link_to_file_errors'], remove_file=True)
+
+     # result_import['link_to_file_errors'] = get_response_to_unload_file(result_import['link_to_file_errors'],
+     #                                                                   remove_file=True)
+    # daadfas = get_response_to_unload_file(result_import['link_to_file_errors'], remove_file=True)
+
+    # result_import['link_to_file_errors'] = os.path.abspath(result_import['link_to_file_errors'])
+
+    return  render(request,'result_import.html',
+                   {'status_import':result_import['message'],
+                    'number_of_records':result_import['number_of_records'],
+                    'number_of_imported':result_import['number_of_imported'],
+                    'number_of_errors':result_import['number_of_errors'],
+                    'number_of_duplicates':result_import['number_of_duplicates'],
+                    'link_to_file_errors':result_import['link_to_file_errors'],
+                    'path_back':DICT_URL_PATH_TO_REGISTER[name_model]
+                    })
+
+def appgtn_unload_file_with_import_errors (request):
+
+    """
+        Вьюха отадает пользователю файл с ошибками импорта данных в Систему.
+        Нужный файл определяется по значению "PathToFileError" из запроса.
+
+    :param request: поступивший запрос
+    :return: объект HttpResponse содержащий запрашиваемый файл в двоичном режиме
+    """
+    return get_response_to_unload_file(request.POST['PathToFileError'])
+
+
+def appgtn_del_file_and_redirect (request):
+
+    """
+        Вюха удаляет файл на сервере (путь определяется по параметру запроса "PathToFileError").
+        Далее вьюха переадресовывает пользователя на страницу указанную в параметре "PathBack"
+
+    :param request: поступивший запрос
+    :return:
+    """
+
+    os.remove(request.POST['PathToFileError'])
+
+    return HttpResponseRedirect(request.POST['PathBack'])
+
+
 
     # #####Попытки переименовать временный файл######
     # # получаем абсолютный путь к файлу

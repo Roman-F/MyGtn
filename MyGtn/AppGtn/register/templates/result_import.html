@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Результаты импорта данных в Систему</title>
+</head>
+<body>
+    <p> Статус импорта: {{status_import}}
+    <p> Количество импортируемых записей: {{number_of_records}}
+    <p> Количество загруженных записей {{number_of_imported}}
+    <p> Количество ошибочных записей: {{number_of_errors}}
+    <p> Количество дубликатов: {{number_of_duplicates}}
+
+    <form action="/register/import_in_system/get_file_with_error/" method="post">{% csrf_token %}
+                <input type="hidden" name="PathToFileError" value='{{link_to_file_errors}}'>
+                <button type="submit">Скачать файл с ошибками (повторное скачивание невозможно)</button>
+    </form>
+
+    <form action="/register/import_in_system/back_in_the_register/" method="post">{% csrf_token %}
+        <input type="hidden" name="PathToFileError" value='{{link_to_file_errors}}'>
+        <input type="hidden" name="PathBack" value='{{path_back}}'>
+        <button type="submit">Вернуться</button>
+    </form>
+
+</body>
+</html>

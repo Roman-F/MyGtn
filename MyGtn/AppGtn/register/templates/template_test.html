@@ -6,7 +6,12 @@
 </head>
 <body>
   {% if parametr %}
+    {% load staticfiles %}
     {{parametr}}
+    <!--<p><a href={{parametr.link_to_file_errors}} >Скачать файл c ошибками</a>-->
+    <!--<p><a href='http://127.0.0.1:8000/static/template_for_import_EntityNaturalPerson8185.xlsx'-->
+          <!--type="application/file">Скачать файл c ошибками</a>-->
+    <p><a href="{% static 'template_for_import_EntityNaturalPerson8185.xlsx' %}" >Скачать файл c ошибками</a>
  {% else %}
     Пусто однако
  {% endif %}

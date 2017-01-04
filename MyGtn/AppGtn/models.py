@@ -45,14 +45,15 @@ class AbstractEntityPerson (models.Model):
 
     FIELD_NOT_FOR_IMPORT = ['id','created_date','modifided_date','deleted_date']
 
+
     @classmethod
     def get_class_model_form (cls,field_form=None, exclude_field=None):
 
         """
-        Метод возвращает КЛАСС модельной формы,
-        Выводимые и исключаемые поля либо задаются при вызове метода, либо беруться из констант FIELD_FOR_FORM
-        и EXCLUDE_FIELD_FOR_FORM , которые определены в cls
-        поэтому значение по умолчанию, указанные в определении метода, по сути не используются
+            Метод возвращает КЛАСС модельной формы,
+            Выводимые и исключаемые поля либо задаются при вызове метода, либо беруться из констант FIELD_FOR_FORM
+                и EXCLUDE_FIELD_FOR_FORM , которые определены в cls.
+            Поэтому значение по умолчанию, указанные в определении метода, по сути не используются
         """
 
         if not field_form:
@@ -71,33 +72,13 @@ class AbstractEntityPerson (models.Model):
 
 
     @classmethod
-    def do_import_in_system (cls,data_file):
-
-        """
-        :param data_file: файл с данными для импорта
-        :return: HTTPResponse с результатами импорта
-
-        Метод осуществляет вызов метода импорта данных в Систему и обрабатывает результат импорта, в данной реализации
-        вернет HTTPResponse с результатом импорта:
-        * Положительный - скажет что все ок
-        * Отрицательный - скажет сколько ошибочных записей, сколько загрузилось и даст ссылку на файл с ошибками.
-
-        Метод не предполагает вызова из абстрактного класса, только из конкретной модели, имеющую свою таблицу
-        """
-
-        ImportDataInSystem.do_import(cls,data_file)
-
-
-
-
-    @classmethod
     def get_file_template_for_import(cls):
 
         """
-        # Метод возвращает полный путь к динамически сформированному xlsx файлу, в котором перечислены поля модели как
-        #  заголовки столбцов.
-        # Полученный файл предполагается использовать как шаблон файла импорта данных в выбранную модель
-        # """
+            Метод возвращает полный путь к динамически сформированному xlsx файлу, в котором перечислены поля модели как
+              заголовки столбцов.
+            Полученный файл предполагается использовать как шаблон файла импорта данных в выбранную модель
+        """
         return ImportDataInSystem.get_file_template_for_import(cls)
 
 
@@ -106,49 +87,17 @@ class AbstractEntityPerson (models.Model):
     @classmethod
     def import_in_system (cls, data_file):
 
-        """  Метод из полученного файла загружает данные в систему;
-             При этом проводит проверки на соответствие:
-             - расширению
-             - формату
-             - отсутствию дублей (можно заменить на свою функцию поиска дублей)
-             - корректности значений полей файла (необходимо настраивать для каждого реестра отдельно)
+        """
+            :param data_file: файл с данными для импорта
+            :return: HTTPResponse с результатами импорта
 
-             В результате возвращается словарь с итогами импорта и ссылкой на файл с ошибками
+             Метод осуществляет вызов метода импорта данных в Систему и обрабатывает результат импорта,
+                в данной реализации вернет HTTPResponse с результатом импорта:
+                * Положительный - скажет что все ок
+                * Отрицательный - скажет сколько записей загрузилось, сколько ошибочных и дубликатов
+                    и даст ссылку на файл с ошибками.
         """
 
-        # wb = openpyxl.load_workbook(data_file,read_only=False)
-        # ws = wb.active
-        #
-        # # Проверяем файл на совпадение количества колонок с количеством допустимым к загрузке
-        # data_file_max_column = ws.max_column
-        # if cls.FIELD_FOR_IMPORT == 'all' :
-        #     max_column_in_template = cls._meta.fields.__len__()
-        #     format_is_true = (max_column_in_template == data_file_max_column)
-        #
-        # else:
-        #     max_column_in_template = cls.FIELD_FOR_IMPORT.__len__()
-        #     format_is_true = (max_column_in_template == data_file_max_column)
-        #
-        # if not format_is_true:
-        #     raise RuntimeError ('Количество колонок в импортируемом файле(%s) не соответствует количеству в шаблоне(%s)'
-        #                         % (data_file_max_column, max_column_in_template) )
-        #
-        #
-        # #читаем файл и сохраняем данные в БД
-        #
-        # dict_data = []
-        # for row in ws.rows:
-        #     model_for_save = cls()
-        #     if row[0].coordinate == 'A1':
-        #         continue
-        #     i = 0
-        #     for cell in row:
-        #         setattr(model_for_save,cls.FIELD_FOR_IMPORT[i],cell.value)
-        #         i = i +1
-        #     model_for_save.save()
-        # #--------------------------------------------
-        #
-        # return str(dict_data)
         return ImportDataInSystem.do_import(cls,data_file)
 
 
@@ -188,44 +137,44 @@ class EntityNaturalPerson (AbstractEntityPerson):
     def my_field(self):
         return self.surname.verbose_name
 
-    @classmethod
-    def check_import_data_files (file_to_import, file_to_error = None):
-
-        """
-        Метод выполняет проверку содержимого импортируемого файла (file_to_import) и возвращает словарь.
-        который содержит:
-            - путь к файлу с ошибками
-            - кортеж с номерами корректных строк в импортируемом файле
-            - количество ошибочных записей
-
-        В данном методе реализованы специфические проверки для сущности "Физическое лицо"
-        surname= не проверяется
-        name = не проверяется
-        middlename= не проверяется
-
-        inn = только цифры, только 12 знаков
-
-        date_of_birth= форматы даты, не может быть больше date_issue_dul
-        place_of_birth= не проверяется
-
-        serial_dul= только цифры, только 4 цифры
-        number_dul= только цифры, только 6 цифры
-        date_issue_dul= форматы даты, не может быть больше текущей даты
-        """
-
-        tuple_valid_entries =()
-        count_error_entries = 0
-
-        wb = openpyxl.load_workbook(file_to_import)
-        ws = wb.active
-
-        for row in ws.rows:
-            if row[0].coordinate == 'A1':
-                continue
-
-
-
-        return 'пока еще пишется метод'
+    # @classmethod
+    # def check_import_data_files (file_to_import, file_to_error = None):
+    #
+    #     """
+    #     Метод выполняет проверку содержимого импортируемого файла (file_to_import) и возвращает словарь.
+    #     который содержит:
+    #         - путь к файлу с ошибками
+    #         - кортеж с номерами корректных строк в импортируемом файле
+    #         - количество ошибочных записей
+    #
+    #     В данном методе реализованы специфические проверки для сущности "Физическое лицо"
+    #     surname= не проверяется
+    #     name = не проверяется
+    #     middlename= не проверяется
+    #
+    #     inn = только цифры, только 12 знаков
+    #
+    #     date_of_birth= форматы даты, не может быть больше date_issue_dul
+    #     place_of_birth= не проверяется
+    #
+    #     serial_dul= только цифры, только 4 цифры
+    #     number_dul= только цифры, только 6 цифры
+    #     date_issue_dul= форматы даты, не может быть больше текущей даты
+    #     """
+    #
+    #     tuple_valid_entries =()
+    #     count_error_entries = 0
+    #
+    #     wb = openpyxl.load_workbook(file_to_import)
+    #     ws = wb.active
+    #
+    #     for row in ws.rows:
+    #         if row[0].coordinate == 'A1':
+    #             continue
+    #
+    #
+    #
+    #     return 'пока еще пишется метод'
 
 # """ Описание сущности юридического лица"""
 class EntityLegalPerson (AbstractEntityPerson):

@@ -17,7 +17,10 @@ urlpatterns = patterns('',
     url(r'^formfl/','AppGtn.views.appgtn_form_register'),
     url(r'^tech/','AppGtn.views.appgtn_register',{'model':models.EntityVehicle}),
     url(r'^template_import/','AppGtn.views.appgtn_upload_file_import'),
+    url(r'^import_in_system/get_file_with_error/','AppGtn.views.appgtn_unload_file_with_import_errors'),
+    url(r'^import_in_system/back_in_the_register/','AppGtn.views.appgtn_del_file_and_redirect'),
     url(r'^import_in_system/','AppGtn.views.appgtn_import_in_system'),
+
 
     #url(r'fl_in_file/','AppGtn.views.appgtn_in_file_register_natural_person'),
 ) + static(settings.STATIC_URL)
