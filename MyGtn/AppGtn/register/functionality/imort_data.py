@@ -30,6 +30,11 @@ class ImportDataInSystem ():
     def get_file_template_for_import(cls, cls_for_template):
 
         """
+            Метод формирует файл-шаблон для дальнейшего заполнения.
+            В файл пишуться заголовки столбцов, название которых берется из verbose_name
+
+            :param cls_for_template: класс модели для которйо осуществляется формирвоания файла
+            :return: полный путь к сформированному файлу
         """
 
         wb = openpyxl.Workbook()
@@ -50,166 +55,6 @@ class ImportDataInSystem ():
         wb.save(full_name_file)
 
         return full_name_file
-
-    # @classmethod
-    # def get_file_template_for_import(cls, cls_for_template):
-    #
-    #     """
-    #     Метод возвращает полный путь к динамически сформированному xlsx файлу, в котором перечислены поля модели как
-    #      заголовки столбцов.
-    #     Полученный файл предполагается использовать как шаблон файла импорта данных в выбранную модель
-    #     """
-    #
-    #     wb = openpyxl.Workbook()
-    #     ws = wb.active
-    #
-    #     def customize_cell (field_for_cell, take_row = 1, take_column = 1):
-    #         """
-    #         Процедура,
-    #         делает заголовок в файле жирным,
-    #         а также определяем по заголовкам ширину колонок
-    #
-    #         :param field_for_cell: поле модели для получения заголовка столбца
-    #         :return: ничего
-    #         """
-    #
-    #         ws.cell(row=take_row, column=take_column, value=field_for_cell.verbose_name).font = openpyxl.styles.Font(bold=True)
-    #         ws.column_dimensions[openpyxl.utils.get_column_letter(i)].width = len(field_for_cell.verbose_name) + 1
-    #
-    #
-    #     #получаем список имен полей модели, для использования далее как заголовков столбцов
-    #
-    #     i = 1
-    #     if cls_for_template.FIELD_FOR_IMPORT == 'all':
-    #         for field in cls_for_template._meta.fields:
-    #             customize_cell(field, 1, i)
-    #             i = i + 1
-    #
-    #     else:
-    #         for field_name in cls_for_template.FIELD_FOR_IMPORT:
-    #             field = cls_for_template._meta.get_field(field_name)
-    #             customize_cell(field, 1, i)
-    #             i = i + 1
-    #
-    #     #Проводим сохранение файла с данными
-    #     name_file = 'template_for_import_' + cls_for_template.__name__ + str(random.randint(1000, 9999)) + '.xlsx'
-    #     full_name_file = settings.STATIC_ROOT + name_file
-    #
-    #     wb.save(full_name_file)
-    #
-    #     return full_name_file
-
-    #######Методы импорта данных#######
-
-    # @classmethod
-    # def do_check_data (cls, import_data):
-    #     """
-    #     :param import_data: словарь содержащий данные о выгрузке (например класс проверки)
-    #     :return: возвращает дозаполенный словрь import_data
-    #     """
-    #
-    #     def write_to_file_errors ():
-    #         for idx_column, check_cell in enumerate(check_row):
-    #                     cell_error = ws_error.cell(row= idx_file_errors, column= idx_column+1, value= check_cell.value)
-    #                     cell_error.font = check_cell.font
-    #
-    #                     if result[idx_column]:
-    #                         cell_error.fill = redFill
-    #
-    #
-    #     ws = import_data['data_import']
-    #     number_of_errors = import_data['dict_result']['number_of_errors']
-    #
-    #     class_check = import_data['class_check']
-    #     methods_check = class_check.__dict__
-    #
-    #     #Формируем имена методов для проверки, соответствующие колонкам в файле
-    #     names_check_methods = ['do_check_' + import_data['dict_matching'][x.value] for x in ws.rows[0]]
-    #
-    #     #Формируем список полей модели в порядке соответствущим колонкам в файле
-    #     fields_of_the_order = [import_data['dict_matching'][x.value] for x in ws.rows[0]]
-    #
-    #     #Создаем файл для хранения ошибочных записей + добавляем в него колонку "Описание ошибок"
-    #     wb_error = openpyxl.load_workbook(cls.get_file_template_for_import(import_data['original_class'])
-    #                                       ,read_only = False)
-    #     ws_error = wb_error.active
-    #     new_column = len(names_check_methods) + 1
-    #     ws_error.cell(row = 1, column = new_column, value=u'Описание ошибок').font = openpyxl.styles.Font(bold=True)
-    #
-    #     #Определяем шаблон заливки ошибочных ячеек
-    #     redFill = openpyxl.styles.PatternFill(start_color='FFFF0000', fill_type='solid')
-    #
-    #     #Построчно проводим проверку данных
-    #     count_error = 0
-    #     count_duplicates = 0
-    #     count_correct_records = 0
-    #     idx_file_errors = 2
-    #     for check_row in ws.rows[1:]:
-    #         result = []
-    #         text_error = ''
-    #         general_text_error = ''
-    #         check_values = [x.value for x in check_row]
-    #
-    #         # вызываем для каждого элемента проверяемой строки свой метод проверки
-    #         for name_method, check_value in zip(names_check_methods, check_values):
-    #             # text_error += methods_check.get(name_method, lambda x:'')(check_value)
-    #             text_error = getattr(class_check,name_method,lambda x:'')(str(check_value))
-    #             general_text_error += text_error
-    #             # text_error += methods_check[name_method].__func__(check_value) if name_method in methods_check else ''
-    #             result.append(text_error)
-    #             text_error = ''
-    #
-    #         # Смотрим наличие ошибок по итогам проверки, и если есть заполняем файл с ошибкамиб
-    #         if general_text_error:
-    #             # for idx_column, check_cell in enumerate(check_row):
-    #             #     cell_error = ws_error.cell(row= idx_file_errors, column= idx_column, value= check_cell.value)
-    #             #     cell_error.font = check_cell.font
-    #             #
-    #             #     if result[idx_column]:
-    #             #         cell_error.fill = redFill
-    #             write_to_file_errors()
-    #
-    #             count_error += 1
-    #             ws_error.cell(row= idx_file_errors, column= len(check_row)+1,value= general_text_error)
-    #             idx_file_errors += 1
-    #
-    #         #Иначе проводим проверку на дублирование
-    #         else:
-    #             query_set = import_data['original_class'].objects.all()
-    #             param_for_filter = {key:value for key,value in zip(fields_of_the_order,check_values) if value}
-    #             # pre_param = map(lambda x,y: datetime.datetime.date(param_for_filter[x])
-    #             #                         if type(y) == type(datetime.datetime.today())
-    #             #                         else param_for_filter[x], param_for_filter.items())
-    #             #
-    #
-    #
-    #             if import_data['original_class'].objects.filter(**param_for_filter):
-    #                 # тоже самое, что и при записи в файл ошибки
-    #                 # вынысти в отдельную функцию
-    #                 # for idx_column, check_cell in enumerate(check_row):
-    #                 #     cell_error = ws_error.cell(row= idx_file_errors, column= idx_column, value= check_cell.value)
-    #                 #     cell_error.font = check_cell.font
-    #                 #
-    #                 #     if result[idx_column]:
-    #                 #         cell_error.fill = redFill
-    #                 write_to_file_errors()
-    #
-    #
-    #                 count_duplicates += 1
-    #                 ws_error.cell(row= idx_file_errors, column= len(check_row)+1,value= 'Дубль записи в Системе')
-    #                 idx_file_errors += 1
-    #
-    #             else:
-    #                 count_correct_records += 1
-    #
-    #     full_name_file = settings.STATIC_ROOT + 'error' + str(random.randint(1000, 9999)) + '.xlsx'
-    #     wb_error.save(full_name_file)
-    #
-    #     return {
-    #         'count_error' : count_error,
-    #         'count_duplicates' : count_duplicates,
-    #         'count_correct_records' : count_correct_records
-    #     }
 
 
     @staticmethod
@@ -249,7 +94,7 @@ class ImportDataInSystem ():
         :return: список импортируемых значений, в котором значения для связанных полей заменены соответствующими им
             ID (внещними ключами)
         """
-
+        #TODO: https://docs.djangoproject.com/en/1.10/ref/models/meta/ - анализ на упрощение текущего кода
         check_related_generator = (cls_for_import._meta.get_field_by_name(name)[0].rel.to
                                    if cls_for_import._meta.get_field_by_name(name)[0].rel else False
                                    for name in names_check_fields)
@@ -277,7 +122,10 @@ class ImportDataInSystem ():
 
     @staticmethod
     def check_row_data (class_check, fields_name, check_values):
+
         """
+        Метод проводит проверку данных (check_values) на корректность (согласно логике классов проверки)
+
         :param check_row: проверяемая строка с данными
         :return: возвращает False если ошибок не найденно, иначе кортеж результатов проверки полей:
         * пустая строка - ошибок в поле нет
@@ -289,18 +137,22 @@ class ImportDataInSystem ():
 
         return result if any(result) else False
 
+
     @staticmethod
     def check_duplicate (cls_for_import, fields_name, check_values):
         """
+        Метод проверки на дублирование записи (check_values) в системе
+
         :param cls_for_import: класс модели, в которую осуществляется импорт
-        :param methods_and_check_values: наименования полей и значения, которые импортируются в поля
+        :param fields_name: список имен полей, по которым будет проводится поиск дублей
+        :param check_values: список значений для полей (fields_name), по которым будет проводится поиск дублей
         :return: True - если дубль, иначе False
         """
 
         param_for_filter = {key:datetime.date(value) if isinstance(value,datetime) else value
                                         for key,value in zip (fields_name, check_values) if value}
 
-        return True if cls_for_import.objects.filter(**param_for_filter)[:1] else False
+        return True if cls_for_import.objects.filter(**param_for_filter)[:1].exists() else False
 
 
 
@@ -315,8 +167,14 @@ class ImportDataInSystem ():
              - отсутствию дублей (можно заменить на свою функцию поиска дублей)
              - корректности значений полей файла (необходимо настраивать для каждого реестра отдельно)
 
-             В результате возвращается словарь с итогами импорта и ссылкой на файл с ошибками
+             В результате возвращается cловарь с итогами импорта и путем к файлу с ошибками
+
+            :param cls_for_import: класс модели, для которой осуществляется импорт
+            :param data_file: файл с данными для импорта
+            :return: cловарь с итогами импорта и путем к файлу с ошибками
         """
+        #TODO: метод большой - нужно уменьшить
+
         def write_to_file_errors ():
             for idx_column, check_cell in enumerate(check_row):
                         cell_error = ws_error.cell(row= idx_file_errors, column= idx_column+1, value= check_cell.value)
@@ -352,18 +210,15 @@ class ImportDataInSystem ():
 
         map(lambda x: field_for_import.remove(x), cls_for_import.FIELD_NOT_FOR_IMPORT)
 
-        # import_data = {
-        #     'data_import' : ws,
-        #     'original_class': cls_for_import,
-        #     'fields_for_import': field_for_import,
-        #     'class_check' : DICT_MATCHING_CLASS_IMPORT_WITH_CLASS_CHECK[cls_for_import.__name__],
-        #     'dict_matching': '',
-        #     'dict_result' : dict_result
-        # }
-
+        #TODO: https://docs.djangoproject.com/en/1.10/ref/models/meta/ - анализ на упрощение текущего кода
         for i in field_for_import:
-            key = unicode(cls_for_import._meta.get_field_by_name(i)[0].verbose_name)
-            verbose_name_to_import[key] = i
+            pre_key = cls_for_import._meta.get_field_by_name(i)[0]
+
+            if type(pre_key).__name__ != 'RelatedObject':
+                key = pre_key.verbose_name
+                verbose_name_to_import[key] = i
+            else:
+                continue
 
         for i in ws.rows[0]:
 
@@ -381,11 +236,11 @@ class ImportDataInSystem ():
 
             import_status = 'Fatal error'
 
-            error_message = (u'Импорт невозможен. Не удалось идентифициоровать все колонки в импортируемом файле./n'
-                             u' Перечень не идентифицирвоанных колонок:/n')
+            error_message = (u'Импорт невозможен. Не удалось идентифициоровать все колонки в импортируемом файле.'
+                             u' Перечень не идентифицирвоанных колонок: ')
 
             for i in error_column:
-                error_message += '- ' + i + '/n'
+                error_message += i + ','
 
             dict_result.update({
                 'status': import_status,
@@ -538,17 +393,25 @@ class CheckImportEntityNaturalPerson ():
                              'или ГГГГ-ММ-ДД;')
 
         return result_check
-"""
-    Класс, который отвечает за проверку полей класса о юридических лицах
-"""
+
+class CheckImportEntityVehicle ():
+
+    """
+        Класс, который отвечает за проверку полей класса о юридических лицах
+    """
+    pass
+
 
 """
     Класс, который отвечает за проверку полей класса о технических средствах
 """
 
-"""
-    Класс, который отвечает за проверку полей класса о цветах техники
-"""
+class CheckImportVehicleColor ():
+    """
+        Класс, который отвечает за проверку полей класса о цветах техники
+    """
+    pass
+
 
 """
     Класс, который отвечает за проверку полей класса о марках двигателя
@@ -564,4 +427,6 @@ class CheckImportEntityNaturalPerson ():
 
 
 # Глобавльный словарь который сопоставляет какой класс, какую модель проверяет
-DICT_MATCHING_CLASS_IMPORT_WITH_CLASS_CHECK = {'EntityNaturalPerson' : CheckImportEntityNaturalPerson}
+DICT_MATCHING_CLASS_IMPORT_WITH_CLASS_CHECK = {'EntityNaturalPerson' : CheckImportEntityNaturalPerson,
+                                               'VehicleColor' : CheckImportVehicleColor,
+                                               'EntityVehicle' : CheckImportEntityVehicle}

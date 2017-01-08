@@ -24,17 +24,19 @@ DICT_TEMPLATES_FOR_FORMS_CHANGES = {'EntityNaturalPerson': 'form_register_natura
 
 # Словарь соответствия имени модели шаблону отображения реестра
 DICT_TEMPLATES_FOR_REGISTER_DISPLAY = {'EntityNaturalPerson': 'register_natural_person.html',
-                                       'EntityVehicle': 'register_vehicles.html'
+                                       'EntityVehicle': 'register_vehicles.html',
+                                       'VehicleColor': 'vehicle_color.html',
+                                       'VehicleBrand': 'vehicle_brand.html/',
+                                       'Country': 'country.html'
                                        }
 
-# Словарь соответствия имени модели и адресу реестра ее отображающий
+# Словарь соответствия имени модели и адресу реестра, ее отображающий
 DICT_URL_PATH_TO_REGISTER = {'EntityNaturalPerson': '/register/fl/',
-                             'EntityVehicle': '/register/tech/'
+                             'EntityVehicle': '/register/tech/',
+                             'VehicleColor': '/register/vehiclecolor/',
+                             'VehicleBrand': '/register/vehiclebrand/',
+                             'Country': '/register/country/'
                              }
-
-# Словарь соответствия имени модели модельной форме
-# DICT_MODELFORM={'EntityNaturalPerson':models.FormEntityNaturalPerson}
-# DICT_MODELFORM = {'EntityNaturalPerson': models.FormEntityAppGtn}
 
 
 def get_response_to_unload_file (path_to_file, name_file_for_user = '', remove_file = False):
@@ -66,16 +68,29 @@ def get_response_to_unload_file (path_to_file, name_file_for_user = '', remove_f
 
 def appgtn_register(request,model):
     """
-    формироание реестра "Физические лица"
+        Общее представление для реестров и справочников
     """
+    #TODO: обработать случай когда модель не получена (model is None)
+    #TODO: обработать случай когда в БД нет данных
 
-    #TODO обработать случай когда модель не получена (model is None)
+    NAMES_NO_DISPLAYED_FIELDS = ['id','created_date','modifided_date','deleted_date']
 
-    parametr = get_list_or_404(model)
-    path_to_template = DICT_TEMPLATES_FOR_REGISTER_DISPLAY[model.__name__]
-    return render(request, path_to_template,
-                  {"list": parametr, "model": model.__name__})
+    list_fields = list(model._meta.get_fields_with_model())
 
+    map(lambda x: list_fields.remove(x) if x[0].name in NAMES_NO_DISPLAYED_FIELDS else None, list_fields[:])
+
+    list_dict_values = model.objects.all().values(*(map(lambda x: x[0].name, list_fields)))
+
+    table_headers = tuple(x[0].verbose_name for x in list_fields)
+
+    # Формируем кортеж кортежей со значениями из БД, в порядке следования полей в list_fields
+    tuple_tuple_values = tuple(tuple(dict_values[x[0].name] for x in list_fields) for dict_values in list_dict_values)
+
+    path_to_template = "base_register.html"
+
+    return render(request, path_to_template, {"table_headers": table_headers,
+                                            "tuple_tuple_values": tuple_tuple_values,
+                                            "model": model.__name__})
 
 def appgtn_form_register(request):
     """
@@ -106,11 +121,7 @@ def appgtn_form_register(request):
         form = model_used.get_class_model_form()(initial=dict_to_json)
 
     else:
-        # form = DICT_MODELFORM[name_model](models.EntityNaturalPerson, entity_fields=['surname', 'name', 'middlename', 'inn',
-        #                                                                'date_of_birth', 'place_of_birth',
-        #                                                                'serial_dul', 'number_dul', 'date_issue_dul'])
          form=model_used.get_class_model_form()()
-        # form=models.FormEntityNaturalPerson
 
     path_to_template = DICT_TEMPLATES_FOR_FORMS_CHANGES[name_model]
     return render(request, path_to_template, {'formfl': form,
@@ -144,26 +155,6 @@ def appgtn_form_register(request):
 #     6) формируем RESPONSE с найденным шаблоном и собранным JSON и отдаем его пользователю
 #
 #     """
-# def date_handler(obj):
-#     return obj.isoformat() if hasattr(obj, 'isoformat') else obj
-#
-# name_model=request.POST.get('NameRegisterModel','Модель не найдена')
-# model_for_file = get_model('AppGtn',name_model)
-# id_record = request.POST.get('id_record','ID записи не задан')
-#
-# data_entity= model_for_file.objects.get(pk=int(id_record))
-#
-# meta=model_for_file._meta
-#
-# dict_to_json={fields.name:data_entity.__getattribute__(fields.name) for fields in meta.fields}
-#
-# # json_dict=json.dumps(dict_to_json, default=date_handler)
-#
-# path_to_template=DICT_TEMPLATES_FOR_FORMS_CHANGES[name_model]
-#
-# form = DICT_MODELFORM[name_model](initial=dict_to_json)
-#
-# return render(request,path_to_template,{'formfl':form})
 
 def appgtn_in_file_register_natural_person(request):
     # Задача решаемая данной вьюхой:
@@ -286,14 +277,6 @@ def appgtn_import_in_system (request):
     finally:
         os.remove(path_work_file)
 
-    # return get_response_to_unload_file(result_import['link_to_file_errors'], remove_file=True)
-
-     # result_import['link_to_file_errors'] = get_response_to_unload_file(result_import['link_to_file_errors'],
-     #                                                                   remove_file=True)
-    # daadfas = get_response_to_unload_file(result_import['link_to_file_errors'], remove_file=True)
-
-    # result_import['link_to_file_errors'] = os.path.abspath(result_import['link_to_file_errors'])
-
     return  render(request,'result_import.html',
                    {'status_import':result_import['message'],
                     'number_of_records':result_import['number_of_records'],
@@ -303,6 +286,7 @@ def appgtn_import_in_system (request):
                     'link_to_file_errors':result_import['link_to_file_errors'],
                     'path_back':DICT_URL_PATH_TO_REGISTER[name_model]
                     })
+
 
 def appgtn_unload_file_with_import_errors (request):
 
@@ -323,13 +307,12 @@ def appgtn_del_file_and_redirect (request):
         Далее вьюха переадресовывает пользователя на страницу указанную в параметре "PathBack"
 
     :param request: поступивший запрос
-    :return:
+    :return: Перенаправление на на страницу указанную в параметре "PathBack"
     """
 
     os.remove(request.POST['PathToFileError'])
 
     return HttpResponseRedirect(request.POST['PathBack'])
-
 
 
     # #####Попытки переименовать временный файл######

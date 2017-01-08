@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock title %}</title>
+</head>
+<body>
+    {% block functional_panel %}
+        <table>
+            <tr>
+                <form action="/register/template_import/" method="post">{% csrf_token %}
+                    <input type="hidden" name="NameRegisterModel" value='{{model}}'>
+                    <button type="submit">Выгрузить шаблон импорта</button>
+                </form>
+            </tr>
+            <tr>
+                <form action="/register/import_in_system/" method="post" enctype="multipart/form-data">{% csrf_token %}
+                    <input type="hidden" name="NameRegisterModel" value='{{model}}'>
+                    <input type="file" name="file_to_import">
+                    <button type="submit">Загрузить файл импорта</button>
+                </form>
+            </tr>
+        </table>
+    {% endblock functional_panel %}
+
+    <table>
+    {% block table_headers %}
+            <tr>
+                {%for header in table_headers %}
+                    <th>{{header}}</th>
+                {%endfor%}
+            </tr>
+    {% endblock table_headers %}
+
+    {% block content %}
+            {%for tuple_values in tuple_tuple_values %}
+                <p>
+                    <tr>
+                        {%for values in tuple_values %}
+                            <td>
+                                {{values}}
+                            </td>
+                        {%endfor%}
+                    </tr>
+                </p>
+            {%endfor%}
+    {% endblock content %}
+    </table>
+</body>
+</html>

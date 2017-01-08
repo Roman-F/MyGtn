@@ -13,7 +13,7 @@
 
     <form action="/register/import_in_system/get_file_with_error/" method="post">{% csrf_token %}
                 <input type="hidden" name="PathToFileError" value='{{link_to_file_errors}}'>
-                <button type="submit">Скачать файл с ошибками (повторное скачивание невозможно)</button>
+                <button type="submit">Скачать файл с ошибками</button>
     </form>
 
     <form action="/register/import_in_system/back_in_the_register/" method="post">{% csrf_token %}

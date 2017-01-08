@@ -1,0 +1,71 @@
+{%extends "base_register.html" %}
+
+{% block functional_panel %}
+    <table>
+        <tr>
+            <form action="/register/template_import/" method="post">{% csrf_token %}
+                <input type="hidden" name="NameRegisterModel" value='{{model}}'>
+                <button type="submit">Выгрузить шаблон импорта</button>
+            </form>
+        </tr>
+        <tr>
+            <form action="/register/import_in_system/" method="post" enctype="multipart/form-data">{% csrf_token %}
+                <input type="hidden" name="NameRegisterModel" value='{{model}}'>
+                <input type="file" name="file_to_import">
+                <button type="submit">Загрузить файл импорта</button>
+            </form>
+        </tr>
+    </table>
+{% endblock functional_panel %}
+
+{% block content %}
+    <table>
+        <tr>
+            <th>Наименование цвета</th>
+        </tr>
+    </table>
+    {% for exemplar in list %}
+        <p>
+            <tr>
+                <td>{{exemplar.color_name}}</td>
+            </tr>
+        </p>
+    {%endfor%}
+{% endblock content %}
+
+<!--<!DOCTYPE html>-->
+<!--<html>-->
+<!--<head lang="en">-->
+    <!--<meta charset="UTF-8">-->
+    <!--<title></title>-->
+<!--</head>-->
+<!--<body>-->
+    <!--<table>-->
+        <!--<tr>-->
+            <!--<form action="/register/template_import/" method="post">{% csrf_token %}-->
+                <!--<input type="hidden" name="NameRegisterModel" value='{{model}}'>-->
+                <!--<button type="submit">Выгрузить шаблон импорта</button>-->
+            <!--</form>-->
+        <!--</tr>-->
+        <!--<tr>-->
+            <!--<form action="/register/import_in_system/" method="post" enctype="multipart/form-data">{% csrf_token %}-->
+                <!--<input type="hidden" name="NameRegisterModel" value='{{model}}'>-->
+                <!--<input type="file" name="file_to_import">-->
+                <!--<button type="submit">Загрузить файл импорта</button>-->
+            <!--</form>-->
+        <!--</tr>-->
+    <!--</table>-->
+    <!--<table>-->
+        <!--<tr>-->
+            <!--<th>Наименование цвета</th>-->
+        <!--</tr>-->
+    <!--</table>-->
+    <!--{% for exemplar in list %}-->
+        <!--<p>-->
+            <!--<tr>-->
+                <!--<td>{{exemplar.color_name}}</td>-->
+            <!--</tr>-->
+        <!--</p>-->
+    <!--{%endfor%}-->
+<!--</body>-->
+<!--</html>-->

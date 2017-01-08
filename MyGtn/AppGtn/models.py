@@ -10,38 +10,22 @@ import random
 # Create your models here.
 
 
-# """абстрактная модель для физ лиц и юр лиц"""
+
 class AbstractEntityPerson (models.Model):
+
+    """абстрактная базовая модель для учитываемых сущностей в Системе (Техника, Физ. лица, Цвета и т.д.)"""
 
     class Meta:
         abstract = True
 
-    # id = models.AutoField(primary_key=True)
     created_date=models.DateField(auto_now_add=True)
     modifided_date=models.DateField(auto_now=True)
     deleted_date=models.DateField (null=True,blank=True)
 
-    # #блок полей для юридического адреса или адерса регистрации
-    # legal_locality=
-    # legal_street=
-    # legal_house=
-    # legal_corps=
-    # legal_apartment=
-    #
-    #
-    # #блок полей для юридического адреса или адерса регистрации
-    # actual_locality=
-    # actual_street=
-    # actual_house=
-    # actual_corps=
-    # actual_apartment=
-
-    comment=models.CharField(max_length=1000,blank=True)
+    comment=models.CharField(verbose_name= u"Комментарий",max_length=1000,blank=True)
 
     FIELD_FOR_FORM=None
     EXCLUDE_FIELD_FOR_FORM=None
-
-    FIELD_FOR_IMPORT = 'all'
 
     FIELD_NOT_FOR_IMPORT = ['id','created_date','modifided_date','deleted_date']
 
@@ -88,14 +72,10 @@ class AbstractEntityPerson (models.Model):
     def import_in_system (cls, data_file):
 
         """
-            :param data_file: файл с данными для импорта
-            :return: HTTPResponse с результатами импорта
+            Метод из полученного файла загружает данные в систему
 
-             Метод осуществляет вызов метода импорта данных в Систему и обрабатывает результат импорта,
-                в данной реализации вернет HTTPResponse с результатом импорта:
-                * Положительный - скажет что все ок
-                * Отрицательный - скажет сколько записей загрузилось, сколько ошибочных и дубликатов
-                    и даст ссылку на файл с ошибками.
+            :param data_file: файл с данными для импорта
+            :return: cловарь с итогами импорта и ссылкой на файл с ошибками
         """
 
         return ImportDataInSystem.do_import(cls,data_file)
@@ -107,17 +87,13 @@ class EntityNaturalPerson (AbstractEntityPerson):
 
     FIELD_FOR_FORM=['surname','name','middlename','inn','date_of_birth','place_of_birth','serial_dul','number_dul',
                 'date_issue_dul']
-    # FIELD_FOR_FORM='all'
     EXCLUDE_FIELD_FOR_FORM=None
-
-    FIELD_FOR_IMPORT = ['surname','name','middlename','inn','date_of_birth','place_of_birth','serial_dul','number_dul',
-                'date_issue_dul']
 
     surname=models.CharField(verbose_name='Фамилия',max_length=30)
     name = models.CharField (verbose_name= 'Имя', max_length= 20)
     middlename=models.CharField(verbose_name='Отчество',max_length=30)
 
-    inn = models.PositiveIntegerField(max_length=12,blank=True,null=True)
+    inn = models.CharField(max_length=12,blank=True,default='')
 
     date_of_birth=models.DateField()
     place_of_birth=models.CharField(max_length=200, blank=False)
@@ -137,53 +113,17 @@ class EntityNaturalPerson (AbstractEntityPerson):
     def my_field(self):
         return self.surname.verbose_name
 
-    # @classmethod
-    # def check_import_data_files (file_to_import, file_to_error = None):
-    #
-    #     """
-    #     Метод выполняет проверку содержимого импортируемого файла (file_to_import) и возвращает словарь.
-    #     который содержит:
-    #         - путь к файлу с ошибками
-    #         - кортеж с номерами корректных строк в импортируемом файле
-    #         - количество ошибочных записей
-    #
-    #     В данном методе реализованы специфические проверки для сущности "Физическое лицо"
-    #     surname= не проверяется
-    #     name = не проверяется
-    #     middlename= не проверяется
-    #
-    #     inn = только цифры, только 12 знаков
-    #
-    #     date_of_birth= форматы даты, не может быть больше date_issue_dul
-    #     place_of_birth= не проверяется
-    #
-    #     serial_dul= только цифры, только 4 цифры
-    #     number_dul= только цифры, только 6 цифры
-    #     date_issue_dul= форматы даты, не может быть больше текущей даты
-    #     """
-    #
-    #     tuple_valid_entries =()
-    #     count_error_entries = 0
-    #
-    #     wb = openpyxl.load_workbook(file_to_import)
-    #     ws = wb.active
-    #
-    #     for row in ws.rows:
-    #         if row[0].coordinate == 'A1':
-    #             continue
-    #
-    #
-    #
-    #     return 'пока еще пишется метод'
 
-# """ Описание сущности юридического лица"""
 class EntityLegalPerson (AbstractEntityPerson):
+
+    """ Описание сущности юридического лица"""
     pass
 
 
-# """ Описание сущности технического средства"""
+
 class EntityVehicle (AbstractEntityPerson):
 
+    """ Описание сущности технического средства"""
     brand=models.ForeignKey('VehicleBrand', verbose_name=u'Марка техники')
     color=models.ForeignKey('VehicleColor',verbose_name=u'Цвет техники')
     country_of_origin=models.ForeignKey('Country',verbose_name=u'Страна происхождения')
@@ -211,30 +151,6 @@ class FormEntityNaturalPerson(ModelForm):
                   'place_of_birth', 'serial_dul', 'number_dul', 'date_issue_dul']
 
 
-# class FormEntityAppGtn(ModelForm):
-#
-#     def __init__(self, model_entity, entity_fields=None, exclude_entity_fields=None ):
-#
-#         self._meta.model= model_entity
-#         self._meta.fields= entity_fields
-#         self._meta.exclude= exclude_entity_fields
-#
-#         self.Meta.model= model_entity
-#         self.Meta.fields= entity_fields
-#         self.Meta.exclude= exclude_entity_fields
-#
-#         FormEntityAppGtn.Meta.model=model_entity
-#         FormEntityAppGtn.Meta.fields=entity_fields
-#         FormEntityAppGtn.Meta.exclude=exclude_entity_fields
-#
-#         super(FormEntityAppGtn,self).__init__()
-#
-#     class Meta:
-#       model = None
-#       fields = None
-#       exclude = None
-
-
 #############
 #СПРАВОЧНИКИ#
 #############
@@ -253,11 +169,11 @@ class Country(AbstractEntityPerson):
     short_name=models.CharField(verbose_name=u'Краткое наименование',max_length=100,unique=True)
     code=models.IntegerField(verbose_name=u'Код страны',max_length=3,unique=True)
     alpha_2=models.CharField(verbose_name=u'Код альфа-2',max_length=2,unique=True)
-    alpha_3=models.CharField(verbose_name=u'Код альфа-2',max_length=3,unique=True)
+    alpha_3=models.CharField(verbose_name=u'Код альфа-3',max_length=3,unique=True)
 
 class Manufacturer(AbstractEntityPerson):
     country=models.ForeignKey(Country,verbose_name=u'Страна производителя')
-    name=models.CharField(verbose_name=u'Выдавшая организация',max_length=300,unique=True)
+    name=models.CharField(verbose_name=u'Наименование производителя',max_length=300,unique=True)
     addr=models.CharField(verbose_name=u'Адрес производителя', max_length=300)
 
 
@@ -307,7 +223,7 @@ class VehicleBrand(AbstractEntityPerson):
         ('9','Отсутствует'),
     )
 
-    brand_category=models.CharField(verbose_name=u'',max_length=11,choices=BRAND_CATEGORY)
+    brand_category=models.CharField(verbose_name=u'Категория',max_length=11,choices=BRAND_CATEGORY)
 
     weight=models.DecimalField(verbose_name='Масса', max_digits=10, decimal_places=2)
     max_speed=models.DecimalField(verbose_name='Макс. скорость', max_digits=10, decimal_places=2)
