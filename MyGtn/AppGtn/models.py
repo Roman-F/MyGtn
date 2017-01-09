@@ -155,16 +155,32 @@ class FormEntityNaturalPerson(ModelForm):
 #СПРАВОЧНИКИ#
 #############
 class VehicleColor (AbstractEntityPerson):
+
+    """
+        Описание сущности справочника "Цвет техники"
+    """
     color_name=models.CharField(verbose_name=u'Наименование цвета',max_length=200,unique=True)
 
 class BrandEngine (AbstractEntityPerson):
+
+    """
+        Описание сущности справочника "Марки двигателей"
+    """
     name=models.CharField(verbose_name=u'Марка двигателя',max_length=200,unique=True)
 
 class OrganizationIssue(AbstractEntityPerson):
+
+    """
+        Описание сущности справочника "Выдавшая организация"
+    """
     name=models.CharField(verbose_name=u'Выдавшая организация',max_length=300,unique=True)
     addr=models.CharField(verbose_name=u'Адрес организации',max_length=300)
 
 class Country(AbstractEntityPerson):
+
+    """
+        Описание сущности справочника "Страны"
+    """
     full_name=models.CharField(verbose_name=u'Полное наименование',max_length=200,unique=True)
     short_name=models.CharField(verbose_name=u'Краткое наименование',max_length=100,unique=True)
     code=models.IntegerField(verbose_name=u'Код страны',max_length=3,unique=True)
@@ -172,24 +188,44 @@ class Country(AbstractEntityPerson):
     alpha_3=models.CharField(verbose_name=u'Код альфа-3',max_length=3,unique=True)
 
 class Manufacturer(AbstractEntityPerson):
+
+    """
+        Описание сущности справочника "Производители"
+    """
     country=models.ForeignKey(Country,verbose_name=u'Страна производителя')
     name=models.CharField(verbose_name=u'Наименование производителя',max_length=300,unique=True)
     addr=models.CharField(verbose_name=u'Адрес производителя', max_length=300)
 
 
 class KindVehicle (AbstractEntityPerson):
+
+    """
+        Описание сущности справочника "Виды транспортных средств"
+    """
     code= models.PositiveSmallIntegerField(verbose_name= u'Код вида', max_length=3, unique=True)
     name= models.CharField(verbose_name=u'Вид транспортного средства', max_length=100, unique=True)
 
 class TypeProp (AbstractEntityPerson):
+
+    """
+        Описание сущности справочника "Типы движителей"
+    """
     name=models.CharField(verbose_name=u'Тип движителя',max_length=100,unique=True)
 
 class TypeAndGroupVehicle(AbstractEntityPerson):
+
+    """
+        Описание сущности справочника "Группы и типы техники"
+    """
     parent_id=models.PositiveIntegerField(verbose_name=u'ID родителя')
     name=models.CharField(verbose_name=u'Наименование', max_length=300)
     level=models.PositiveSmallIntegerField(verbose_name=u'Уровень записи', max_length=1)
 
 class VehicleEngine(AbstractEntityPerson):
+
+    """
+        Описание сущности справочника "Двигатели"
+    """
     brand_engine=models.ForeignKey(BrandEngine,verbose_name=u'Maрка двигателя')
     power_kwt=models.DecimalField(verbose_name=u'Мощность двигателя(кВт)', max_digits=8, decimal_places=2)
     power_hp=models.DecimalField(verbose_name=u'Мощность двигателя(Л.с.)', max_digits=8, decimal_places=2)
@@ -206,6 +242,10 @@ class VehicleEngine(AbstractEntityPerson):
 
 
 class VehicleBrand(AbstractEntityPerson):
+
+    """
+        Описание сущности справочника "Марки техники"
+    """
     name=models.CharField(verbose_name=u'Марка',max_length=200)
     type_brand=models.ForeignKey(TypeAndGroupVehicle,verbose_name=u'Тип(наименование) марки')
     manufacturer=models.ForeignKey(Manufacturer,verbose_name=u'Производитель')

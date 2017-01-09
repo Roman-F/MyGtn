@@ -294,8 +294,8 @@ def appgtn_unload_file_with_import_errors (request):
         Вьюха отадает пользователю файл с ошибками импорта данных в Систему.
         Нужный файл определяется по значению "PathToFileError" из запроса.
 
-    :param request: поступивший запрос
-    :return: объект HttpResponse содержащий запрашиваемый файл в двоичном режиме
+        :param request: поступивший запрос
+        :return: объект HttpResponse содержащий запрашиваемый файл в двоичном режиме
     """
     return get_response_to_unload_file(request.POST['PathToFileError'])
 
@@ -306,8 +306,8 @@ def appgtn_del_file_and_redirect (request):
         Вюха удаляет файл на сервере (путь определяется по параметру запроса "PathToFileError").
         Далее вьюха переадресовывает пользователя на страницу указанную в параметре "PathBack"
 
-    :param request: поступивший запрос
-    :return: Перенаправление на на страницу указанную в параметре "PathBack"
+        :param request: поступивший запрос
+        :return: Перенаправление на на страницу указанную в параметре "PathBack"
     """
 
     os.remove(request.POST['PathToFileError'])
