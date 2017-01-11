@@ -12,6 +12,6 @@ urlpatterns = patterns('',
 
     url(r'^admin/', include(admin.site.urls)),
     url(r'^register/',include('AppGtn.register.urls')),
-    #url(r'^formfl/','AppGtn.views.appgtn_form_register_natural_person'),
-    url(r'^in_file/','AppGtn.views.appgtn_in_file_register_natural_person'),
+    url(r'^', include('AppGtn.register.urls')),
+
 ) + static(settings.STATIC_URL)

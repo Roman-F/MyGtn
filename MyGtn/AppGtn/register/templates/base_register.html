@@ -8,6 +8,11 @@
     {% block functional_panel %}
         <table>
             <tr>
+                <form action="/" method="get">
+                    <button type="submit">Ввернуться на главную</button>
+                </form>
+            </tr>
+            <tr>
                 <form action="/register/base_form_register/" method="post">{% csrf_token %}
                     <input type="hidden" name="NameRegisterModel" value='{{model}}'>
                     <input type="submit" value="Добавить">

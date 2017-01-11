@@ -25,7 +25,7 @@ class AbstractEntityPerson (models.Model):
     comment=models.CharField(verbose_name= u"Комментарий",max_length=1000,blank=True)
 
     FIELD_FOR_FORM=None
-    EXCLUDE_FIELD_FOR_FORM=None
+    EXCLUDE_FIELD_FOR_FORM=['created_date','modifided_date','deleted_date']
 
     FIELD_NOT_FOR_IMPORT = ['id','created_date','modifided_date','deleted_date']
 
@@ -157,7 +157,7 @@ class FormEntityNaturalPerson(ModelForm):
 class VehicleColor (AbstractEntityPerson):
 
     """
-        Описание сущности справочника "Цвет техники"
+        Описание сущности справочника "Цвета техники"
     """
     color_name=models.CharField(verbose_name=u'Наименование цвета',max_length=200,unique=True)
 

@@ -10,9 +10,7 @@ from AppGtn import models
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    # Examples:
-    # url(r'^$', 'MyGtn.views.home', name='home'),
-    # url(r'^blog/', include('blog.urls')),
+
     url(r'^fl/','AppGtn.views.appgtn_register',{'model':models.EntityNaturalPerson}),
     url(r'^base_form_register/','AppGtn.views.appgtn_form_register'),
     url(r'^tech/','AppGtn.views.appgtn_register',{'model':models.EntityVehicle}),
@@ -23,5 +21,6 @@ urlpatterns = patterns('',
     url(r'^import_in_system/get_file_with_error/','AppGtn.views.appgtn_unload_file_with_import_errors'),
     url(r'^import_in_system/back_in_the_register/','AppGtn.views.appgtn_del_file_and_redirect'),
     url(r'^import_in_system/','AppGtn.views.appgtn_import_in_system'),
+    url(r'^','AppGtn.views.appgtn_main'),
 
 ) + static(settings.STATIC_URL)

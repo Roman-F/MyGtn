@@ -63,8 +63,7 @@ class ImportDataInSystem ():
         """
         Метод находит связанные поля в модели, для которой осуществляется импорт.
         Далее метод определяет для найденных связанных полей, по импортируемым данным,
-            действительные ("Истинные") значения (т.е. значения внешних ключей)
-
+            действительные ("Истинные") значения (в данном случае экземпляр связаной модели целиком)
         Решаемая задача (на примере технического средства (далее - ТС)):
             Импортируется запись о ТС.
             Модель ТС содержит связанное поле "Цвет", которое ссылается на справочник "Цвет ТС".
@@ -73,33 +72,35 @@ class ImportDataInSystem ():
                 пользователь не знает ID цветов)
             Т.к. типы имортируемых значений для связанных полей и типы связанных полей в БД не совпадают,
                 то действовать "в лоб" нельзя.
-            Т.о. предварительно необходимо найти по импортируемым значениям соответствующие им ID в связанных моделях
+            Т.о. предварительно необходимо найти по импортируемым значениям соответствующие им экземпляры связанных моделей
                 и уже после этого проводить дальнейшую обработку (искать дубли, сохранять данные в БД)
 
         Нюансы реализации:
-            1) т.к. заренее не известно по какой модели будет проводится импорт, то необходимо проверять все поля модели
+            1) Т.к. заренее не известно по какой модели будет проводится импорт, то необходимо проверять все поля модели
                на "связанность"
-            2) аналогично и для связанных моделей:
+            2) Аналогично и для связанных моделей:
                 т.к. заранее не известна связанная модель, то нельзя определить по какому полю нужно искать
                     импортируемое значение.
                 соответственно, необходимо искать импортируемое значение по всем полям модели.
-            3) Для пустых импортируемых значений (None) поиск не проводится
+            3) Для корректно сравнения значений проверяемых полей с искомым значением осуществлятся приведение типа:
+                приведение типа и сравнение осуществляется на стороне БД, т.к. это менее ресурсоемко чем в Приложении;
+            4) Для пустых импортируемых значений (None) поиск не проводится
+            5) В результат берем экземпляр связанной модели целиком, т.к. этот экземпляр необходимо указывать при сохранении
+                экземпляра импортируемой модели.
+            6) Т.к. нет механизма разрешения ситуации когда найденно несколько разных записей с искомым значением,
+                то берем первое попавшееся, поэтому в запросе устанавливается ограничеие LIMIT 1
 
-            Примечаниие: хардкод как решение задачи не приемлем :)
-
-
-        :param cls_for_import: класс модели для которйо осуществляется импорт
+        :param cls_for_import: класс модели для которой осуществляется импорт
         :param names_check_fields: наименование полей модели по которым проводится импорт
         :param check_values: импортируемые значения
         :return: список импортируемых значений, в котором значения для связанных полей заменены соответствующими им
-            ID (внещними ключами)
+            экземплярами3
         """
         #TODO: https://docs.djangoproject.com/en/1.10/ref/models/meta/ - анализ на упрощение текущего кода
         check_related_generator = (cls_for_import._meta.get_field_by_name(name)[0].rel.to
                                    if cls_for_import._meta.get_field_by_name(name)[0].rel else False
                                    for name in names_check_fields)
 
-        agregated_Q = []
         true_check_values=[]
 
         for related_class, value in zip(check_related_generator,check_values):
@@ -107,28 +108,21 @@ class ImportDataInSystem ():
             true_value = False
 
             if (related_class) and (value != None):
-                str_name_fields = ','.join(field[0].column for field in related_class._meta.get_fields_with_model())
 
-                # tuple_name_fields = tuple(field[0].column for field in related_class._meta.get_fields_with_model())
+                str_column = ','.join(field[0].column for field in related_class._meta.get_fields_with_model())
+                str_cast_func = "CAST((%s) as text)" % str_column
 
-                str_cast_func = "CAST((%s) as text)" % str_name_fields
-
-                # cast_func = "CAST((%s) as text)" % tuple_name_fields
-
-                # rel_cls_fields = related_class._meta.get_all_field_names()
-                # str_name_fields = ','.join(rel_cls_fields)
-
-                # for rel_cls_field in rel_cls_fields:
-                #     agregated_Q.append(Q(**{rel_cls_field:value}))
-
-                # true_value = related_class.objects.filter(OR(*agregated_Q))[:1]
-
+                #Ищем связанный объект в связанной модели
+                '''
+                    Дефолтный, но не рабочий вариант:
+                    related_class.objects.extra(where=['CAST((%s) as text) ~ %s'],params=[str_column,value])
+                    Дефолтный вариант не заработал, т.к. в итоговом запросе str_column обернут в дополнительные кавычки,
+                       отчего SQL воспринимает str_column как одну строку, а не перечнь наименований колонок.
+                       В результате получаем пустой результат.
+                       Поэтому функцию приведения типа на стороне БД CAST() оформляем стандартно (str_cast_func)
+                '''
                 true_value = related_class.objects.extra(where=[str_cast_func +' ~ %s']
                                                          ,params=[value])[:1]
-
-                # true_value = related_class.objects.extra(where=['CAST((%s) as text) ~ %s']
-                #                                          ,params=[str_name_fields,value]
-                #                                          )
 
             if true_value:
                 true_check_values.append(true_value[0])
@@ -141,12 +135,12 @@ class ImportDataInSystem ():
     def check_row_data (class_check, fields_name, check_values):
 
         """
-        Метод проводит проверку данных (check_values) на корректность (согласно логике классов проверки)
+            Метод проводит проверку данных (check_values) на корректность (согласно логике классов проверки)
 
-        :param check_row: проверяемая строка с данными
-        :return: возвращает False если ошибок не найденно, иначе кортеж результатов проверки полей:
-        * пустая строка - ошибок в поле нет
-        * текст - поле ошибочно, а полученный текст описывает ошибку
+            :param check_row: проверяемая строка с данными
+            :return: возвращает False если ошибок не найденно, иначе кортеж результатов проверки полей:
+            * пустая строка - ошибок в поле нет
+            * текст - поле ошибочно, а полученный текст описывает ошибку
         """
 
         result = tuple(getattr(class_check,'do_check_' + field_name,lambda x:'')(str(check_value))
@@ -158,12 +152,12 @@ class ImportDataInSystem ():
     @staticmethod
     def check_duplicate (cls_for_import, fields_name, check_values):
         """
-        Метод проверки на дублирование записи (check_values) в системе
+            Метод проверки на дублирование записи (check_values) в системе
 
-        :param cls_for_import: класс модели, в которую осуществляется импорт
-        :param fields_name: список имен полей, по которым будет проводится поиск дублей
-        :param check_values: список значений для полей (fields_name), по которым будет проводится поиск дублей
-        :return: True - если дубль, иначе False
+            :param cls_for_import: класс модели, в которую осуществляется импорт
+            :param fields_name: список имен полей, по которым будет проводится поиск дублей
+            :param check_values: список значений для полей (fields_name), по которым будет проводится поиск дублей
+            :return: True - если дубль, иначе False
         """
 
         param_for_filter = {key:datetime.date(value) if isinstance(value,datetime) else value

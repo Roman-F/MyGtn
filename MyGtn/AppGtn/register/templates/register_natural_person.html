@@ -19,12 +19,6 @@
                 <button type="submit">Изменить</button>
             </form>
         </tr>
-        <!--<tr>-->
-            <!--&lt;!&ndash;<form action="/in_file/" method="post">{% csrf_token %}&ndash;&gt;-->
-                <!--&lt;!&ndash;<input type="hidden" name="NameRegisterModel" value='{{model}}'>&ndash;&gt;-->
-                <!--&lt;!&ndash;<button type="submit">Выгрузить</button>&ndash;&gt;-->
-            <!--&lt;!&ndash;</form>&ndash;&gt;-->
-        <!--</tr>-->
         <tr>
             <form action="/register/template_import/" method="post">{% csrf_token %}
                 <input type="hidden" name="NameRegisterModel" value='{{model}}'>
