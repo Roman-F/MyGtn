@@ -107,14 +107,31 @@ class ImportDataInSystem ():
             true_value = False
 
             if (related_class) and (value != None):
-                rel_cls_fields = related_class._meta.get_all_field_names()
-                for rel_cls_field in rel_cls_fields:
-                    agregated_Q.append(Q(**{rel_cls_field:value}))
+                str_name_fields = ','.join(field[0].column for field in related_class._meta.get_fields_with_model())
 
-                true_value = related_class.objects.filter(OR(*agregated_Q))[:1]
+                # tuple_name_fields = tuple(field[0].column for field in related_class._meta.get_fields_with_model())
+
+                str_cast_func = "CAST((%s) as text)" % str_name_fields
+
+                # cast_func = "CAST((%s) as text)" % tuple_name_fields
+
+                # rel_cls_fields = related_class._meta.get_all_field_names()
+                # str_name_fields = ','.join(rel_cls_fields)
+
+                # for rel_cls_field in rel_cls_fields:
+                #     agregated_Q.append(Q(**{rel_cls_field:value}))
+
+                # true_value = related_class.objects.filter(OR(*agregated_Q))[:1]
+
+                true_value = related_class.objects.extra(where=[str_cast_func +' ~ %s']
+                                                         ,params=[value])[:1]
+
+                # true_value = related_class.objects.extra(where=['CAST((%s) as text) ~ %s']
+                #                                          ,params=[str_name_fields,value]
+                #                                          )
 
             if true_value:
-                true_check_values.append(true_value.pk)
+                true_check_values.append(true_value[0])
             else:
                 true_check_values.append(value)
 

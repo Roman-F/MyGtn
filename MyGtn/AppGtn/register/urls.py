@@ -14,7 +14,7 @@ urlpatterns = patterns('',
     # url(r'^$', 'MyGtn.views.home', name='home'),
     # url(r'^blog/', include('blog.urls')),
     url(r'^fl/','AppGtn.views.appgtn_register',{'model':models.EntityNaturalPerson}),
-    url(r'^formfl/','AppGtn.views.appgtn_form_register'),
+    url(r'^base_form_register/','AppGtn.views.appgtn_form_register'),
     url(r'^tech/','AppGtn.views.appgtn_register',{'model':models.EntityVehicle}),
     url(r'^vehiclebrand/','AppGtn.views.appgtn_register',{'model':models.VehicleBrand}),
     url(r'^vehiclecolor/','AppGtn.views.appgtn_register',{'model':models.VehicleColor}),
@@ -24,6 +24,4 @@ urlpatterns = patterns('',
     url(r'^import_in_system/back_in_the_register/','AppGtn.views.appgtn_del_file_and_redirect'),
     url(r'^import_in_system/','AppGtn.views.appgtn_import_in_system'),
 
-
-    #url(r'fl_in_file/','AppGtn.views.appgtn_in_file_register_natural_person'),
 ) + static(settings.STATIC_URL)

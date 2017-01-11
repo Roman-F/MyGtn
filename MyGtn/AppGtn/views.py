@@ -19,9 +19,6 @@ from django.core.servers.basehttp import FileWrapper
 # Create your views here.
 PATH_NATURAL_PERSON = 'AppGtn/register/templates/'
 
-# Словарь соответсвия имени модели шаблону отображенмя формы изменения записи реестра
-DICT_TEMPLATES_FOR_FORMS_CHANGES = {'EntityNaturalPerson': 'form_register_natural_person.html'}
-
 # Словарь соответствия имени модели шаблону отображения реестра
 DICT_TEMPLATES_FOR_REGISTER_DISPLAY = {'EntityNaturalPerson': 'register_natural_person.html',
                                        'EntityVehicle': 'register_vehicles.html',
@@ -30,7 +27,8 @@ DICT_TEMPLATES_FOR_REGISTER_DISPLAY = {'EntityNaturalPerson': 'register_natural_
                                        'Country': 'country.html'
                                        }
 
-# Словарь соответствия имени модели и адресу реестра, ее отображающий
+# Словарь соответствия имени модели и адресу реестра, ее отображающего
+#TODO: придумать как использовать \register\urls.py , там эта информация уже есть (нарушен принцип DRY)
 DICT_URL_PATH_TO_REGISTER = {'EntityNaturalPerson': '/register/fl/',
                              'EntityVehicle': '/register/tech/',
                              'VehicleColor': '/register/vehiclecolor/',
@@ -84,18 +82,19 @@ def appgtn_register(request,model):
     table_headers = tuple(x[0].verbose_name for x in list_fields)
 
     # Формируем кортеж кортежей со значениями из БД, в порядке следования полей в list_fields
-    tuple_tuple_values = tuple(tuple(dict_values[x[0].name] for x in list_fields) for dict_values in list_dict_values)
+    tuple_tuples_values = tuple(tuple(dict_values[x[0].name] for x in list_fields) for dict_values in list_dict_values)
 
     path_to_template = "base_register.html"
 
     return render(request, path_to_template, {"table_headers": table_headers,
-                                            "tuple_tuple_values": tuple_tuple_values,
+                                            "tuple_tuples_values": tuple_tuples_values,
                                             "model": model.__name__})
 
 def appgtn_form_register(request):
     """
     Добавление новой и изменение имеющейся записи реестра
     """
+    #TODO: для изменения записей необходимо определить как пользователь будет выбирать нужную запись
 
     name_model = request.POST.get('NameRegisterModel', 'Модель не найдена')
     model_used = get_model('AppGtn', name_model)
@@ -123,10 +122,13 @@ def appgtn_form_register(request):
     else:
          form=model_used.get_class_model_form()()
 
-    path_to_template = DICT_TEMPLATES_FOR_FORMS_CHANGES[name_model]
-    return render(request, path_to_template, {'formfl': form,
-                                              'id_record': id_record,
-                                              'model': request.POST.get('NameRegisterModel',
+    # path_to_template = DICT_TEMPLATES_FOR_FORMS_CHANGES[name_model]
+    path_to_template = 'base_form_register.html'
+
+    return render(request, path_to_template, {'form': form
+                                              ,'id_record': id_record
+                                              ,'path_back':DICT_URL_PATH_TO_REGISTER[name_model]
+                                              ,'model': request.POST.get('NameRegisterModel',
                                                                         'Модель не передана')})
 
 

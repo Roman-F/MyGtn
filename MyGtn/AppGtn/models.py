@@ -89,9 +89,9 @@ class EntityNaturalPerson (AbstractEntityPerson):
                 'date_issue_dul']
     EXCLUDE_FIELD_FOR_FORM=None
 
-    surname=models.CharField(verbose_name='Фамилия',max_length=30)
-    name = models.CharField (verbose_name= 'Имя', max_length= 20)
-    middlename=models.CharField(verbose_name='Отчество',max_length=30)
+    surname=models.CharField(verbose_name=u'Фамилия',max_length=30)
+    name = models.CharField (verbose_name=u'Имя', max_length=20)
+    middlename=models.CharField(verbose_name=u'Отчество',max_length=30)
 
     inn = models.CharField(max_length=12,blank=True,default='')
 

@@ -8,6 +8,12 @@
     {% block functional_panel %}
         <table>
             <tr>
+                <form action="/register/base_form_register/" method="post">{% csrf_token %}
+                    <input type="hidden" name="NameRegisterModel" value='{{model}}'>
+                    <input type="submit" value="Добавить">
+                </form>
+            </tr>
+            <tr>
                 <form action="/register/template_import/" method="post">{% csrf_token %}
                     <input type="hidden" name="NameRegisterModel" value='{{model}}'>
                     <button type="submit">Выгрузить шаблон импорта</button>
@@ -33,7 +39,7 @@
     {% endblock table_headers %}
 
     {% block content %}
-            {%for tuple_values in tuple_tuple_values %}
+            {%for tuple_values in tuple_tuples_values %}
                 <p>
                     <tr>
                         {%for values in tuple_values %}

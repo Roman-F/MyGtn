@@ -5,14 +5,14 @@
     <title></title>
 </head>
 <body>
-    <form action="/register/formfl/" method="post">{% csrf_token %}
-        {{formfl.as_p}}
+    <form action="/register/base_form_register/" method="post">{% csrf_token %}
+        {{form.as_p}}
         <input type="hidden" name="NameRegisterModel" value='{{model}}'>
         <input type="hidden" name="id_record" value='{{id_record}}'>
         <input type="submit" name="save" value="Сохранить"/>
 
     </form>
-    <form action="/register/fl/">
+    <form action={{path_back}}>
         <button type="submit">Отмена</button>
     </form>
 </body>
