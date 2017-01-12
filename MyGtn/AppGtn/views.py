@@ -82,9 +82,9 @@ def appgtn_register(request,model):
 
     path_to_template = "base_register.html"
 
-    return render(request, path_to_template, {"table_headers": table_headers,
-                                            "tuple_tuples_values": tuple_tuples_values,
-                                            "model": model.__name__})
+    return render(request, path_to_template, {"table_headers": table_headers
+                                                ,"tuple_tuples_values": tuple_tuples_values
+                                                ,"model": model.__name__})
 
 def appgtn_form_register(request):
     """

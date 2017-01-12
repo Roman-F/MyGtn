@@ -107,7 +107,7 @@ class ImportDataInSystem ():
 
             true_value = False
 
-            if (related_class) and (value != None):
+            if related_class and value != None:
 
                 str_column = ','.join(field[0].column for field in related_class._meta.get_fields_with_model())
                 str_cast_func = "CAST((%s) as text)" % str_column
@@ -194,6 +194,7 @@ class ImportDataInSystem ():
                         if result_check:
                             if result_check[idx_column]:
                                 cell_error.fill = redFill
+
 
         dict_result = {
             'status': '',
@@ -413,9 +414,7 @@ class CheckImportEntityVehicle ():
     pass
 
 
-"""
-    Класс, который отвечает за проверку полей класса о технических средствах
-"""
+#TODO добавить """ Класс, который отвечает за проверку полей класса о технических средствах """
 
 class CheckImportVehicleColor ():
     """
@@ -424,17 +423,11 @@ class CheckImportVehicleColor ():
     pass
 
 
-"""
-    Класс, который отвечает за проверку полей класса о марках двигателя
-"""
+#TODO добавить """ Класс, который отвечает за проверку полей класса о марках двигателя """
 
-"""
-    Класс, который отвечает за проверку полей класса о марках технических средств
-"""
+#TODO добавить """ Класс, который отвечает за проверку полей класса о марках технических средств """
 
-"""
-    Класс, который отвечает за проверку полей класса о выдавшей организации
-"""
+#TODO добавить """ Класс, который отвечает за проверку полей класса о выдавшей организации """
 
 
 # Глобавльный словарь который сопоставляет какой класс, какую модель проверяет
