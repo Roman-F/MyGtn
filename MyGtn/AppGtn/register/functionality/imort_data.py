@@ -222,26 +222,26 @@ class ImportDataInSystem ():
         map(lambda x: field_for_import.remove(x), cls_for_import.FIELD_NOT_FOR_IMPORT)
 
         #TODO: https://docs.djangoproject.com/en/1.10/ref/models/meta/ - анализ на упрощение текущего кода
-        for i in field_for_import:
-            pre_key = cls_for_import._meta.get_field_by_name(i)[0]
+        for field in field_for_import:
+            pre_key = cls_for_import._meta.get_field_by_name(field)[0]
 
             if type(pre_key).__name__ != 'RelatedObject':
                 key = pre_key.verbose_name
-                verbose_name_to_import[key] = i
+                verbose_name_to_import[key] = field
             else:
                 continue
 
-        for i in ws.rows[0]:
+        for cell in ws.rows[0]:
 
-            if i.value in field_for_import:
-                matching_column_import_with_field_model[i.value] = i.value
-                names_check_methods.append(i.value)
+            if cell.value in field_for_import:
+                matching_column_import_with_field_model[cell.value] = cell.value
+                names_check_methods.append(cell.value)
 
-            elif i.value in verbose_name_to_import:
-                matching_column_import_with_field_model[i.value] = verbose_name_to_import[i.value]
-                names_check_methods.append(verbose_name_to_import[i.value])
+            elif cell.value in verbose_name_to_import:
+                matching_column_import_with_field_model[cell.value] = verbose_name_to_import[cell.value]
+                names_check_methods.append(verbose_name_to_import[cell.value])
             else:
-                error_column.append(i.value)
+                error_column.append(cell.value)
 
         if error_column:
 
@@ -250,8 +250,8 @@ class ImportDataInSystem ():
             error_message = (u'Импорт невозможен. Не удалось идентифициоровать все колонки в импортируемом файле.'
                              u' Перечень не идентифицирвоанных колонок: ')
 
-            for i in error_column:
-                error_message += i + ','
+            for error in error_column:
+                error_message += error + ','
 
             dict_result.update({
                 'status': import_status,
