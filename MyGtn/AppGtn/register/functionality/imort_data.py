@@ -191,9 +191,8 @@ class ImportDataInSystem ():
                         cell_error = ws_error.cell(row= idx_file_errors, column= idx_column+1, value= check_cell.value)
                         cell_error.font = check_cell.font
 
-                        if result_check:
-                            if result_check[idx_column]:
-                                cell_error.fill = redFill
+                        if result_check and result_check[idx_column]:
+                            cell_error.fill = redFill
 
 
         dict_result = {

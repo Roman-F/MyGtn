@@ -70,7 +70,8 @@ def appgtn_register(request,model):
 
     list_fields = list(model._meta.get_fields_with_model())
 
-    map(lambda x: list_fields.remove(x) if x[0].name in NAMES_NO_DISPLAYED_FIELDS else None, list_fields[:])
+    for field in list_fields[:]:
+        list_fields.remove(field) if field[0].name in NAMES_NO_DISPLAYED_FIELDS else None
 
     #TODO: доработать получение значения, чтобы для связанных полей в место ID выводились нужные значения
     list_dict_values = model.objects.all().values(*(map(lambda x: x[0].name, list_fields)))
