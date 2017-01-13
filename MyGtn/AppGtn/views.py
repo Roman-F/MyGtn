@@ -68,18 +68,16 @@ def appgtn_register(request,model):
 
     NAMES_NO_DISPLAYED_FIELDS = ['id','created_date','modifided_date','deleted_date']
 
-    list_fields = list(model._meta.get_fields_with_model())
-
-    for field in list_fields[:]:
-        list_fields.remove(field) if field[0].name in NAMES_NO_DISPLAYED_FIELDS else None
+    list_fields  = tuple(field[0] for field in model._meta.get_fields_with_model()
+                                            if field[0].name not in NAMES_NO_DISPLAYED_FIELDS)
 
     #TODO: доработать получение значения, чтобы для связанных полей в место ID выводились нужные значения
-    list_dict_values = model.objects.all().values(*(map(lambda x: x[0].name, list_fields)))
+    list_dict_values = model.objects.all().values(*(map(lambda x: x.name, list_fields)))
 
-    table_headers = tuple(x[0].verbose_name for x in list_fields)
+    table_headers = tuple(x.verbose_name for x in list_fields)
 
     # Формируем кортеж кортежей со значениями из БД, в порядке следования полей в
-    tuple_tuples_values = tuple(tuple(dict_values[x[0].name] for x in list_fields) for dict_values in list_dict_values)
+    tuple_tuples_values = tuple(tuple(dict_values[x.name] for x in list_fields) for dict_values in list_dict_values)
 
     path_to_template = "base_register.html"
 

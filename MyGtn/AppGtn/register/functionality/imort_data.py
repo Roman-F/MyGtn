@@ -211,29 +211,19 @@ class ImportDataInSystem ():
         names_check_methods = []
         class_check = DICT_MATCHING_CLASS_IMPORT_WITH_CLASS_CHECK[cls_for_import.__name__]
 
-        # Проверяем файл на соответствие структуре импорта (есть ли нужные колонки)
-        field_for_import = cls_for_import._meta.get_all_field_names()
-        verbose_name_to_import = {}
+        field_for_import = tuple(field[0] for field in cls_for_import._meta.get_fields_with_model()
+                                                    if field[0].name not in cls_for_import.FIELD_NOT_FOR_IMPORT)
+
+        verbose_name_to_import = {field.verbose_name : field.name for field in field_for_import}
+
+        names_fields_for_import = tuple(field.name for field in field_for_import)
+
         matching_column_import_with_field_model = {}
         error_column = []
 
-        i = ''
-
-        map(lambda x: field_for_import.remove(x), cls_for_import.FIELD_NOT_FOR_IMPORT)
-
-        #TODO: https://docs.djangoproject.com/en/1.10/ref/models/meta/ - анализ на упрощение текущего кода
-        for field in field_for_import:
-            pre_key = cls_for_import._meta.get_field_by_name(field)[0]
-
-            if type(pre_key).__name__ != 'RelatedObject':
-                key = pre_key.verbose_name
-                verbose_name_to_import[key] = field
-            else:
-                continue
-
         for cell in ws.rows[0]:
 
-            if cell.value in field_for_import:
+            if cell.value in names_fields_for_import:
                 matching_column_import_with_field_model[cell.value] = cell.value
                 names_check_methods.append(cell.value)
 
