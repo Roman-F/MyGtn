@@ -145,7 +145,7 @@ def appgtn_upload_file_import (request):
 
     return get_response_to_unload_file(path_to_template_import, name_file_for_user=filename, remove_file=True)
 
-def appgtn_import_in_system (request):
+def appgtn_import_in_system(request):
 
     """
         Вьюха берет данные из файла, опеделяет модель для импорта и импортирует данные в систему
@@ -157,25 +157,26 @@ def appgtn_import_in_system (request):
     file_data = request.FILES['file_to_import']
 
     path_work_file = settings.MEDIA_ROOT+file_data.name
-    with open (path_work_file,'wb') as work_file:
+    with open(path_work_file, 'wb') as work_file:
         for chunk in file_data.chunks():
             work_file.write(chunk)
 
     try:
-        result_import = model_for_file.import_in_system(path_work_file)
+        # result_import = model_for_file.import_in_system(path_work_file)
+        result_import = model_for_file.multiprocessor_import_in_system(path_work_file)
     except RuntimeError as result_import:
-        return render(request,'template_test.html',{'parametr':result_import})
+        return render(request, 'template_test.html', {'parametr': result_import})
     finally:
         os.remove(path_work_file)
 
-    return  render(request,'result_import.html',
-                   {'status_import':result_import['message'],
-                    'number_of_records':result_import['number_of_records'],
-                    'number_of_imported':result_import['number_of_imported'],
-                    'number_of_errors':result_import['number_of_errors'],
-                    'number_of_duplicates':result_import['number_of_duplicates'],
-                    'link_to_file_errors':result_import['link_to_file_errors'],
-                    'path_back':DICT_URL_PATH_TO_REGISTER[name_model]
+    return  render(request, 'result_import.html',
+                   {'status_import': result_import['message'],
+                    'number_of_records': result_import['number_of_records'],
+                    'number_of_imported': result_import['number_of_imported'],
+                    'number_of_errors': result_import['number_of_errors'],
+                    'number_of_duplicates': result_import['number_of_duplicates'],
+                    'link_to_file_errors': result_import['link_to_file_errors'],
+                    'path_back': DICT_URL_PATH_TO_REGISTER[name_model]
                     })
 
 
@@ -216,6 +217,34 @@ def appgtn_main (request):
     """
 
     return  render(request,'main.html')
+
+
+def test_multiprocessor_import(request):
+
+    '''
+        Вьюха для тестирования и отладки импорта через много процессорность
+    :param request:
+    :return:
+    '''
+
+    name_model = request.POST.get('NameRegisterModel', 'Модель не найдена')
+    model_for_file = get_model('AppGtn', name_model)
+
+    file_data = request.FILES['file_to_import']
+
+    path_work_file = settings.MEDIA_ROOT+file_data.name
+    with open (path_work_file,'wb') as work_file:
+        for chunk in file_data.chunks():
+            work_file.write(chunk)
+
+    try:
+        result_import = model_for_file.multiprocessor_import_in_system(path_work_file)
+    except RuntimeError as result_import:
+        return render(request,'template_test.html',{'parametr':result_import})
+    finally:
+        os.remove(path_work_file)
+
+    return render(request,'template_test.html',{'parametr':result_import})
 
 
     # #####Попытки переименовать временный файл######

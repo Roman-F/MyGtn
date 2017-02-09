@@ -1,11 +1,14 @@
 # coding=utf-8
+import openpyxl
+import random
+
 from django.db import models
+from time import time
 from django.forms import ModelForm
 from django.conf import settings
 from register.functionality.imort_data import ImportDataInSystem
 
-import openpyxl
-import random
+
 
 # Create your models here.
 
@@ -78,7 +81,27 @@ class AbstractEntityPerson (models.Model):
             :return: cловарь с итогами импорта и ссылкой на файл с ошибками
         """
 
-        return ImportDataInSystem.do_import(cls,data_file)
+        return ImportDataInSystem.do_import(cls, data_file)
+
+    @classmethod
+    def multiprocessor_import_in_system (cls, data_file):
+
+        """
+            Метод из полученного файла загружает данные в систему.
+            Работает через многопроцессорность
+
+            :param data_file: файл с данными для импорта
+            :return: cловарь с итогами импорта и ссылкой на файл с ошибками
+        """
+
+        start = time()
+        result = ImportDataInSystem.multiprocessor_do_import(cls, data_file)
+        end = time()
+
+        result['time_excecute'] = end - start
+
+        return result
+        # return ImportDataInSystem.multiprocessor_do_import(cls, data_file)
 
 
 class EntityNaturalPerson (AbstractEntityPerson):
