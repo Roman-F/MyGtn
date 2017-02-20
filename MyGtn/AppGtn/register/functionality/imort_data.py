@@ -7,19 +7,15 @@ __author__ = 'sss'
     а не его имя (т.е. чтобы в последующем не проводить поиск по имени класса проверки, полученного из словаря)
 '''
 
-import re
 import types
 import random
-import copy_reg
-import inspect
 import openpyxl
+import copy_reg
 import multiprocessing
 
 from datetime import datetime
 from functools import partial
-from django.db.models import Q
 from django.conf import settings
-from operator import __or__ as OR
 
 # _pickle_method и copy_reg необходимы для проведения мультиимпорта
 def _pickle_method(m):
@@ -188,7 +184,7 @@ class ImportDataInSystem():
     @classmethod
     def check_structure(cls, cls_for_import, row_with_headers):
 
-        '''
+        """
             Метод проверяет совпадают ли наименования зоголовков из row_with_headers c name или verbose_name полей
              импортируемой модели (cls_for_import).
             Возвращает словарь с двумя списками: в одном перечень полей модели, для которых найденно совпадение среди
@@ -199,14 +195,14 @@ class ImportDataInSystem():
             :return: возвращается словрь, со следующими ключами:
                 * names_check_fields - список name полей модели, для которых найденно совпадение среди заголовков.
                 * error_column - список не идентифировацнных заголовков.
-        '''
+        """
 
         field_for_import = tuple(field[0] for field in cls_for_import._meta.get_fields_with_model()
                                                     if field[0].name not in cls_for_import.FIELD_NOT_FOR_IMPORT)
 
         names_fields_for_import = tuple(field.name for field in field_for_import)
 
-        verbose_name_to_import = {field.verbose_name : field.name for field in field_for_import}
+        verbose_name_to_import = {field.verbose_name: field.name for field in field_for_import}
 
         error_column = []
         names_check_fields = []
@@ -223,156 +219,10 @@ class ImportDataInSystem():
 
         return {'names_check_fields': names_check_fields, 'error_column': error_column}
 
-    # @classmethod
-    # def do_import(cls, cls_for_import, data_file):
-    #
-    #     """
-    #         Метод из полученного файла загружает данные в систему;
-    #          При этом проводит проверки на соответствие:
-    #          - расширению
-    #          - формату
-    #          - отсутствию дублей
-    #          - корректности значений полей файла (необходимо настраивать для каждого реестра отдельно)
-    #
-    #          В результате возвращается cловарь с итогами импорта и путем к файлу с ошибками
-    #
-    #         :param cls_for_import: класс модели, для которой осуществляется импорт
-    #         :param data_file: файл с данными для импорта
-    #         :return: cловарь с итогами импорта и путем к файлу с ошибками
-    #     """
-    #     # TODO: метод большой - нужно уменьшить
-    #     # TODO: добавить возможно указывать свою фугкцию определения дублей
-    #
-    #     def write_to_file_errors():
-    #         for idx_column, check_cell in enumerate(check_row):
-    #                     cell_error = ws_error.cell(row= idx_file_errors, column= idx_column+1, value= check_cell.value)
-    #                     cell_error.font = check_cell.font
-    #
-    #                     if result_check and result_check[idx_column]:
-    #                         cell_error.fill = redFill
-    #
-    #
-    #     dict_result = {
-    #         'status': '',
-    #         'message': '',
-    #         'number_of_records': 0,
-    #         'number_of_imported': 0,
-    #         'number_of_errors': 0,
-    #         'number_of_duplicates': 0,
-    #         'link_to_file_errors': ''
-    #     }
-    #
-    #     wb = openpyxl.load_workbook(data_file, read_only=False)
-    #     ws = wb.active
-    #
-    #     class_check = DICT_MATCHING_CLASS_IMPORT_WITH_CLASS_CHECK[cls_for_import.__name__]
-    #
-    #     # Проверяем файл на соответствие структуре импорта (есть ли нужные колонки).
-    #     dict_check_structure = cls.check_structure(cls_for_import, ws.rows[0])
-    #
-    #     error_column = dict_check_structure['error_column']
-    #
-    #     if error_column:
-    #
-    #         import_status = 'Fatal error'
-    #         error_message = (u'Импорт невозможен. Не удалось идентифициоровать все колонки в импортируемом файле.'
-    #                          u' Перечень не идентифицирвоанных колонок: ')
-    #
-    #         for error in error_column:
-    #             error_message += error + ','
-    #
-    #         dict_result.update({
-    #             'status': import_status,
-    #             'message': error_message
-    #             })
-    #
-    #         return dict_result
-    #
-    #     names_check_fields = dict_check_structure['names_check_fields']
-    #
-    #     # Создаем файл для хранения ошибочных записей + добавляем в него колонку "Описание ошибок".
-    #     path_file_error = cls.get_file_template_for_import(cls_for_import)
-    #     wb_error = openpyxl.load_workbook(path_file_error, read_only = False)
-    #     ws_error = wb_error.active
-    #     new_column = len(names_check_fields) + 1
-    #     ws_error.cell(row = 1, column = new_column, value=u'Описание ошибок').font = openpyxl.styles.Font(bold=True)
-    #
-    #     # Определяем шаблон заливки ошибочных ячеек.
-    #     redFill = openpyxl.styles.PatternFill(start_color='FFFF0000', fill_type='solid')
-    #
-    #
-    #     count_error = 0
-    #     count_duplicates = 0
-    #     count_correct_records = 0
-    #     idx_file_errors = 2
-    #     for check_row in ws.rows[1:]:
-    #
-    #         # Проверям строку на ошибки в данных.
-    #         check_values = [x.value for x in check_row]
-    #         result_check = cls.check_row_data(class_check, names_check_fields, check_values)
-    #
-    #         if result_check:
-    #             # Пишем строку с ошибками в файл для ошибок.
-    #             write_to_file_errors()
-    #
-    #             text_error = ''.join(result_check)
-    #             ws_error.cell(row= idx_file_errors, column= len(check_row)+1,value= text_error)
-    #             idx_file_errors += 1
-    #             count_error += 1
-    #
-    #         else:
-    #             # Иначе проводим проверку на дублирование.
-    #             true_check_values = cls.get_true_vlues(cls_for_import, names_check_fields, check_values)
-    #             if cls.check_duplicate(cls_for_import, names_check_fields, true_check_values):
-    #
-    #                 write_to_file_errors()
-    #
-    #                 ws_error.cell(row= idx_file_errors, column= len(check_row)+1, value= 'Дубль записи в Системе')
-    #                 count_duplicates += 1
-    #                 idx_file_errors += 1
-    #
-    #             else:
-    #                 # Иначе считаем запись корректной и сохраняем ее в БД.
-    #                 count_correct_records += 1
-    #
-    #                 instance_for_save = cls_for_import()
-    #                 for name_field, t_value in zip(names_check_fields, true_check_values):
-    #                     if t_value:
-    #                         setattr(instance_for_save, name_field, t_value)
-    #
-    #                 instance_for_save.save()
-    #
-    #     wb_error.save(path_file_error)
-    #
-    #     if (count_error or count_duplicates) and count_correct_records:
-    #         import_status = 'Error'
-    #         error_message = (u'Данные загружены частично.'
-    #                          u' В импортируемых данных обнаружены записи с ошибками или дубликаты.')
-    #
-    #     elif (count_error or count_duplicates) and not count_correct_records:
-    #         import_status = 'Error'
-    #         error_message = (u'Нет данных для загрузки.'
-    #                          u' В импортируемых данных обнаружены записи с ошибками или дубликаты.')
-    #     else:
-    #         import_status = u'Успех.'
-    #         error_message = u'Загружены все записи.'
-    #
-    #     dict_result.update({
-    #         'status': import_status,
-    #         'message': error_message,
-    #         'number_of_records': len(ws.rows) - 1,
-    #         'number_of_imported': count_correct_records,
-    #         'number_of_errors': count_error,
-    #         'number_of_duplicates': count_duplicates,
-    #         'link_to_file_errors': path_file_error
-    #     })
-    #
-    #     return dict_result
-
     @classmethod
     def do_mono_import(cls, cls_for_import, class_check, names_check_fields, rows_for_import):
 
-        '''
+        """
             Метод проводит проверку данных (на корректность и дублирование) и пишет данные в БД если нет ошибок.
             Данные для проверки беруться из rows_for_import
             :param cls_for_import: класс, для которого проводим импорт
@@ -382,7 +232,7 @@ class ImportDataInSystem():
                     в соответствующем элементе кортежа
                 * Строка юникода - проверяемая запись является дублем (текст об этом и говорит :) )
                 * None - ошибок нет, проверяемая запись записана в базу данных
-        '''
+        """
 
         result_check_data = []
         for check_row in rows_for_import:
@@ -414,7 +264,7 @@ class ImportDataInSystem():
     @classmethod
     def do_multi_import(cls, cls_for_import, class_check, names_check_fields, rows_for_import, n_cpu):
 
-        '''
+        """
             Метод организует паралелльное (в несколько процессов) импортирование данных
                 и собирает результат
             :param cls_for_import: класс модели, для которой осуществляется импорт
@@ -424,7 +274,7 @@ class ImportDataInSystem():
             :param n_cpu: количество ЦПУ (количество процессов = количеству ЦПУ)
             :return: возвращает список, каждый элемент которого это результат проверки
                         соответствующей строки из rows_for_import
-        '''
+        """
 
         # Разбиваем импортируемые записи на группы(срезы) для передачи отдельным процессам.
         list_data_for_process = []
