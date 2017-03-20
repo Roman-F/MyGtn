@@ -179,7 +179,8 @@ class ImportDataInSystem():
         param_for_filter = {key:datetime.date(value) if isinstance(value, datetime) else value
                                         for key, value in zip(fields_name, check_values) if value}
 
-        return True if cls_for_import.objects.filter(**param_for_filter)[:1].exists() else False
+        #return True if cls_for_import.objects.filter(**param_for_filter)[:1].exists() else False
+        return cls_for_import.objects.filter(**param_for_filter).exists()
 
     @classmethod
     def check_structure(cls, cls_for_import, row_with_headers):
